@@ -1,0 +1,22 @@
+version: "3"
+services:
+  rabbit:
+    image: rabbitmq:3-management-alpine
+    container_name: pdaltagent_rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=pdaltagent
+      - RABBITMQ_DEFAULT_PASS=pdaltagent
+    ports:
+      # The standard AMQP protocol port
+      - '5672:5672'
+      # HTTP management UI
+      - '15672:15672'
+    restart: always
+  pdagentd:
+    image: martindstone/pdaltagent:0.1
+    container_name: pdaltagent_pdagentd
+    environment:
+      - CELERY_BROKER_URL=pyamqp://pdaltagent:pdaltagent@pdaltagent_rabbitmq//
+    depends_on:
+      - rabbit
+    restart: always
