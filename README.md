@@ -4,8 +4,8 @@ A high-performance, easy-to-install alternative to pd-agent
 ## To just run in Docker from prebuilt images
 
 * Install Docker and docker-compose
-* Get the docker-compose.yml file from this repo and save it somewhere
-* In the same directory as the docker-compose.yml file, type: `docker-compose up -d`. This will run the `pdagentd` worker and a RabbitMQ broker in docker.
+* Get the `docker-compose.yml` file from this repo and save it somewhere
+* In the same directory as the `docker-compose.yml` file, type: `docker-compose up -d`. This will run the `pdagentd` worker and a RabbitMQ broker in Docker.
 * To send an event: `docker exec pdaltagent_pdagentd pd-send`
 * To make it easier to send an event: `alias pd-send='docker exec pdaltagent_pdagentd pd-send'`
 
