@@ -1,6 +1,7 @@
 import re
 import json
 import requests
+import datetime
 
 # Uncomment the section below for low-level HTTPS debugging
 # import logging
@@ -130,3 +131,41 @@ def fetch_schedules(token=None, params=None):
 
 def fetch_teams(token=None, params=None):
     return fetch(token=token, endpoint="teams", params=params)
+
+def fetch_log_entries(token=None, params=None):
+    fetch_params = {
+        'since': (datetime.datetime.utcnow() - datetime.timedelta(hours=1)).replace(microsecond=0).isoformat(),
+        'until': datetime.datetime.utcnow().replace(microsecond=0).isoformat(),
+        'is_overview': 'true',
+        'include[]': ['incidents', 'services']
+    }
+    if params:
+        fetch_params.update(params)
+    return fetch(token=token, endpoint="log_entries", params=fetch_params)
+
+def ile_to_webhook(ile):
+    event = ile['type'].split('_')[0]
+    short_service = ile['incident']['service']
+    long_service = ile['service']
+    long_incident = ile['incident']
+    short_incident = dict((k, long_incident[k]) for k in ["id", "type", "summary", "self", "html_url"])
+    short_incident['type'] = 'incident_reference'
+
+    long_incident['service'] = long_service
+
+    webhook_log_entry = ile
+    webhook_log_entry['incident'] = short_incident
+    webhook_log_entry['service'] = short_service
+    message = {
+        "event": f"incident.{event}",
+        "log_entries": [
+            ile
+        ],
+        "incident": long_incident
+    }
+    webhook = {
+        "messages": [
+            message
+        ]
+    }
+    return webhook

@@ -17,6 +17,13 @@ services:
     container_name: pdaltagent_pdagentd
     environment:
       - CELERY_BROKER_URL=pyamqp://pdaltagent:pdaltagent@pdaltagent_rabbitmq//
+      # Set the following two environment variables if you want to have the agent
+      # poll pagerduty and send webhooks to a URL that you specify:
+      #
+      # Set this to a PagerDuty API token:
+      # - PD_API_TOKEN=...
+      # Set this to a URL where you want the agent to send (JSON POST) webhooks
+      # - WEBHOOK_DEST_URL=...
     depends_on:
       - rabbit
     restart: always
