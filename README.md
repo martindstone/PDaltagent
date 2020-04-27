@@ -19,7 +19,9 @@ A high-performance, easy-to-install alternative to pd-agent
 
 ## To build a standalone package that can be installed via pip
 
-* Build the package: `poetry build`
+* Install [Poetry](https://python-poetry.org)
+* Install the dependencies: `poetry install`
+* Build the Python package: `poetry build`
 * The installable `.whl` file will be in the `dist/` directory
 * You can install locally (wherever you have python3 + pip3 installed): `pip install ./PDaltagent-*.whl`
 * Then you can run a worker by typing `pdagentd` and send an event by typing `pd-send`
