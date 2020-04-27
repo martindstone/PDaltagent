@@ -9,12 +9,13 @@ A high-performance, easy-to-install alternative to pd-agent
 * To send an event: `docker exec pdaltagent_pdagentd pd-send`
 * To make it easier to send an event: `alias pd-send='docker exec pdaltagent_pdagentd pd-send'`
 
-## To develop:
+## To build a Docker image
 
+* Install Docker
 * Install [Poetry](https://python-poetry.org)
 * Install the dependencies: `poetry install`
-* To start the worker: `poetry run pdagentd`
-* To send an event: `poetry run pd-send`
+* Build the Python package (the Docker build needs it): `poetry build`
+* Build the Docker image: `docker build --tag whatever .`
 
 ## To build a standalone package that can be installed via pip
 
@@ -24,8 +25,10 @@ A high-performance, easy-to-install alternative to pd-agent
 * Then you can run a worker by typing `pdagentd` and send an event by typing `pd-send`
 * In this case you are responsible for creating a broker backend and passing it. Default backend is AMQP (probably RabbitMQ) running on localhost. This project uses [Celery](http://www.celeryproject.org) for queuing, so set the `CELERY_BROKER_URL` environment variable to wherever you have your RabbitMQ (or whatever) broker running
 
-## To build a Docker image
+## To develop:
 
-* Install Docker
-* Build the Python package (the Docker build needs it): `poetry build`
-* Build the Docker image: `docker build --tag whatever .`
+* Install [Poetry](https://python-poetry.org)
+* Install the dependencies: `poetry install`
+* To start the worker: `poetry run pdagentd`
+* To send an event: `poetry run pd-send`
+* In this case you are still responsible for creating a broker backend and passing it 😀
