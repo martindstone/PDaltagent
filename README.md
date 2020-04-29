@@ -5,6 +5,7 @@ A high-performance, easy-to-install alternative to pd-agent
 
 * Install Docker and docker-compose
 * Get the `docker-compose.yml` file from this repo and save it somewhere
+* If you want PDaltagent to look for incidents in your domain and send webhooks, set `PD_API_TOKEN` and `WEBHOOK_DEST_URL` in `docker-compose.yml`
 * In the same directory as the `docker-compose.yml` file, type: `docker-compose up -d`. This will run the `pdagentd` worker and a RabbitMQ broker in Docker.
 * To send an event: `docker exec pdaltagent_pdagentd pd-send`
 * To make it easier to send an event: `alias pd-send='docker exec pdaltagent_pdagentd pd-send'`
