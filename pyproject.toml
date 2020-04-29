@@ -8,7 +8,6 @@ authors = ["Martin Stone <martin@pagerduty.com>"]
 python = "^3.6"
 requests = "^2.23"
 celery = {extras = ["redis"], version = "^4.4"}
-gevent = "^20.4.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
