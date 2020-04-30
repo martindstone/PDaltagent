@@ -12,6 +12,7 @@ from celery import chain
 PD_API_TOKEN = os.environ.get("PD_API_TOKEN")
 WEBHOOK_DEST_URL = os.environ.get("WEBHOOK_DEST_URL")
 IS_OVERVIEW = 'false' if os.environ.get("GET_ALL_LOG_ENTRIES") and os.environ.get("GET_ALL_LOG_ENTRIES").lower != 'false' else 'true'
+
 POLLING_INTERVAL_SECONDS = 10
 if os.environ.get("POLLING_INTERVAL_SECONDS"):
     try:
@@ -62,9 +63,9 @@ def setup_periodic_tasks(sender, **kwargs):
 @app.task(autoretry_for=(HTTPError,),
           retry_kwargs={'max_retries': 10},
           retry_backoff=15,
-          retry_backoff_max=60*60*2)
-def send_to_pd(routing_key, payload, *args):
-    print(f"routing key is {routing_key}")
+          retry_backoff_max=60*60*2,
+          acks_late=True)
+def send_to_pd(routing_key, payload):
     print(f"payload is {payload}")
     return (routing_key, pd.send_v2_event(routing_key, payload))
 
@@ -73,7 +74,6 @@ def send_to_pd(routing_key, payload, *args):
           retry_backoff=15)
 def send_webhook(url, payload):
     return (url, requests.post(url, json=payload))
-
 
 @app.task()
 def poll_pd_log_entries():
