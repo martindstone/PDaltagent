@@ -65,9 +65,9 @@ def setup_periodic_tasks(sender, **kwargs):
           retry_backoff=15,
           retry_backoff_max=60*60*2,
           acks_late=True)
-def send_to_pd(routing_key, payload):
+def send_to_pd(routing_key, payload, base_url="https://events.pagerduty.com", destination_type="v2"):
     print(f"payload is {payload}")
-    return (routing_key, pd.send_v2_event(routing_key, payload))
+    return (routing_key, pd.send_event(routing_key, payload, base_url, destination_type))
 
 @app.task(autoretry_for=(HTTPError,),
           retry_kwargs={'max_retries': 10},

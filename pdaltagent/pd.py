@@ -21,11 +21,11 @@ def auth_header_for_token(token):
     else:
         return f"Token token={token}"
 
-def url_for_routing_key(routing_key):
+def url_for_routing_key(routing_key, base_url="https://events.pagerduty.com"):
     if routing_key.startswith("R"):
-        return f"https://events.pagerduty.com/x-ere/{routing_key}"
+        return f"{base_url}/x-ere/{routing_key}"
     else:
-        return "https://events.pagerduty.com/v2/enqueue"
+        return f"{base_url}/v2/enqueue"
 
 def is_classic_integration_key(str):
     regex = re.compile("^[0-9a-f]{32}$", re.IGNORECASE)
@@ -38,8 +38,23 @@ def is_rules_engine_key(str):
 def is_valid_integration_key(str):
     return (is_classic_integration_key(str) or is_rules_engine_key(str))
 
-def send_v2_event(routing_key, payload):
-    url = url_for_routing_key(routing_key)
+def is_valid_v2_payload(payload):
+    try:
+        assert payload["event_action"] in ["trigger", "acknowledge", "resolve"]
+        assert payload["payload"]["severity"] in ["info", "warning", "error", "critical"]
+        assert payload["payload"]["summary"]
+        assert payload["payload"]["source"]
+    except:
+        return False
+    return True
+
+def send_event(routing_key, payload, base_url="https://events.pagerduty.com", destination_type="v2"):
+
+    url = f"{base_url}/v2/enqueue"
+    if destination_type in ["x-ere", "routing", "ger"]:
+        url = f"{base_url}/x-ere/{routing_key}"
+    elif destination_type in ["v1", "cet", "raw"]:
+        url = f"{base_url}/integration/{routing_key}/enqueue"
 
     headers = {
         "Content-Type": "application/json"

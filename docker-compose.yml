@@ -16,7 +16,11 @@ services:
     image: martindstone/pdaltagent:0.1
     container_name: pdaltagent_pdagentd
     environment:
+      # Location of a backend for Celery:
       - CELERY_BROKER_URL=pyamqp://pdaltagent:pdaltagent@pdaltagent_rabbitmq//
+      # URL where the pd-send command should send payloads:
+      - PD_EVENTS_BASE_URL=http://localhost:5000
+      #
       # Set the following two environment variables if you want to have the agent
       # poll pagerduty and send webhooks to a URL that you specify:
       #
@@ -24,6 +28,9 @@ services:
       # - PD_API_TOKEN=...
       # Set this to a URL where you want the agent to send (JSON POST) webhooks
       # - WEBHOOK_DEST_URL=...
+    ports:
+      # flask
+      - '5000:5000'
     depends_on:
       - rabbit
     restart: always

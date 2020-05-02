@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
-from pdaltagent.tasks import send_to_pd
+import os
 from argparse import ArgumentParser
 import pdaltagent.pd as pd
+import requests
+
+BASE_URL = os.environ.get("PD_EVENTS_BASE_URL") or "https://events.pagerduty.com"
 
 def build_queue_arg_parser(description):
 
@@ -111,8 +114,9 @@ def main():
         if args.event_class:
             body["payload"]["class"] = args.event_class
 
-    send_to_pd.delay(args.routing_key, body)
-    print("Message enqueued.")
+    r = requests.post(f"{BASE_URL}/v2/enqueue", json=body)
+    r.raise_for_status()
+    print(r.text)
 
 if __name__ == '__main__':
     main()
