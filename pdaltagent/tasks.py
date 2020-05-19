@@ -34,7 +34,7 @@ def check_activity_store(sender, **kwargs):
     c = conn.cursor()
     c.execute("SELECT count(name) FROM sqlite_master WHERE type='table' AND name='log_entries'")
     if c.fetchone()[0]==0:
-        print('Table does not exist. Creating...')
+        print('Activity store table does not exist. Creating...')
         c.executescript("""
             BEGIN TRANSACTION;
             CREATE TABLE log_entries (
@@ -48,7 +48,6 @@ def check_activity_store(sender, **kwargs):
 
 @app.on_after_finalize.connect
 def setup_periodic_tasks(sender, **kwargs):
-    print('setting periodic tasks')
     if not PD_API_TOKEN:
         print(f"Can't get log entries because no token is set. Please set PD_API_TOKEN environment variable if you want to poll PD log entries")
         return
@@ -66,7 +65,6 @@ def setup_periodic_tasks(sender, **kwargs):
           retry_backoff_max=60*60*2,
           acks_late=True)
 def send_to_pd(routing_key, payload, base_url="https://events.pagerduty.com", destination_type="v2"):
-    print(f"payload is {payload}")
     return (routing_key, pd.send_event(routing_key, payload, base_url, destination_type))
 
 @app.task(autoretry_for=(HTTPError,),
@@ -99,11 +97,11 @@ def poll_pd_log_entries():
         if r.fetchone()[0]:
             dups += 1
             continue
+
         incident_id = ile['incident']['id']
         if not ile_chains.get(incident_id):
-            print(f"creating task chain for incident id {incident_id}")
             ile_chains[incident_id] = []
-        print(f"adding to task chain for incident id {incident_id}")
+
         sig = send_webhook.si(WEBHOOK_DEST_URL, pd.ile_to_webhook(ile))
         ile_chains[incident_id].append(sig)
         created_at = datetime.datetime.fromisoformat(ile['created_at'].rstrip('Z'))
@@ -114,7 +112,6 @@ def poll_pd_log_entries():
     c.close()
     conn.close()
     for incident_id, ile_chain in ile_chains.items():
-        print(f"Enqueuing chain of {len(ile_chain)} log entries for {incident_id}")
         chain(ile_chain).delay()
     return f"{len(iles)} fetched, {len(new_iles)} processed, {dups} duplicates (since {since})"
 
