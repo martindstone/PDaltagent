@@ -9,6 +9,7 @@ python = "^3.6"
 requests = "^2.23"
 celery = {extras = ["redis"], version = "^4.4"}
 flask = "^1.1.2"
+gunicorn = "^20.0.4"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
