@@ -1,9 +1,10 @@
-version: "3"
+version: "3.8"
 services:
   rabbit:
     image: rabbitmq:3-management-alpine
     container_name: pdaltagent_rabbitmq
     environment:
+      # Username and password for rabbitmq AMQP and management
       - RABBITMQ_DEFAULT_USER=pdaltagent
       - RABBITMQ_DEFAULT_PASS=pdaltagent
     ports:
@@ -16,21 +17,37 @@ services:
     image: martindstone/pdaltagent:0.1
     container_name: pdaltagent_pdagentd
     environment:
-      # Location of a backend for Celery:
+      # Set CELERY_BROKER_URL to the URL of a backend for Celery:
       - CELERY_BROKER_URL=pyamqp://pdaltagent:pdaltagent@pdaltagent_rabbitmq//
-      # URL where the pd-send command should send payloads:
-      - PD_EVENTS_BASE_URL=http://localhost:5000
-      #
-      # Set the following two environment variables if you want to have the agent
-      # poll pagerduty and send webhooks to a URL that you specify:
-      #
-      # Set this to a PagerDuty API token:
-      # - PD_API_TOKEN=...
-      # Set this to a URL where you want the agent to send (JSON POST) webhooks
-      # - WEBHOOK_DEST_URL=...
+
+      # Optional: Set PDAGENTD_API_TOKEN and PDAGENTD_WEBHOOK_DEST_URL if you want the agent to poll PagerDuty logs and 
+      # send reconstituted PagerDuty webhooks to a URL that you specify
+
+      # Optional: Set PDAGENTD_API_TOKEN to a PagerDuty API token:
+      # - PDAGENTD_API_TOKEN=<YOUR_API_TOKEN>
+
+      # Optional: Set PDAGENTD_WEBHOOK_DEST_URL to a URL where you want the agent to send the webhooks
+      # - PDAGENTD_WEBHOOK_DEST_URL=<YOUR_DESTINATION_URL>
+
+      # Very Optional: Set PDAGENTD_GET_ALL_LOG_ENTRIES if you want the agent to generate additional 
+      # webhooks for non-standard incident lifecycle events, like priority changes and responder requests 
+      # (see PD documentation on incident log entries for the kinds of log entries that will be retrieved)
+      # - PDAGENTD_GET_ALL_LOG_ENTRIES=true
+
+      # Optional: Set PDAGENTD_SCRUB_PII if you want to attempt to scrub PII before sending events (see pdaltagent/scrubber.py
+      # for details and regexes):
+      # - PDAGENTD_SCRUB_PII=true
+
+      # Set PDSEND_EVENTS_BASE_URL to a URL where the pd-send command should send event payloads:
+      - PDSEND_EVENTS_BASE_URL=https://localhost:8443
+
+      # Set PDSEND_SKIP_CERT_VERIFY if you want the pd-send command to skip SSL certificate verification
+      # (for example if you are using a self-signed certificate:
+      - PDSEND_SKIP_CERT_VERIFY=true
     ports:
       # flask
-      - '5000:5000'
+      - '8080:8080'
+      - '8443:8443'
     depends_on:
       - rabbit
     restart: always

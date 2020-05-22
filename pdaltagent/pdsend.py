@@ -3,8 +3,14 @@ import os
 from argparse import ArgumentParser
 import pdaltagent.pd as pd
 import requests
+import urllib3
 
-BASE_URL = os.environ.get("PD_EVENTS_BASE_URL") or "https://events.pagerduty.com"
+VERIFY_CERT = False if os.environ.get("PDSEND_SKIP_CERT_VERIFY") and os.environ.get("PDSEND_SKIP_CERT_VERIFY").lower != 'false' else True
+
+if not VERIFY_CERT:
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+BASE_URL = os.environ.get("PDSEND_EVENTS_BASE_URL") or "https://events.pagerduty.com"
 
 def build_queue_arg_parser(description):
 
@@ -114,9 +120,10 @@ def main():
         if args.event_class:
             body["payload"]["class"] = args.event_class
 
-    r = requests.post(f"{BASE_URL}/v2/enqueue", json=body)
+    r = requests.post(f"{BASE_URL}/v2/enqueue", json=body, verify=VERIFY_CERT)
     r.raise_for_status()
-    print(r.text)
+    if not args.quiet:
+        print(r.text)
 
 if __name__ == '__main__':
     main()

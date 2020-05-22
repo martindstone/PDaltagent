@@ -9,7 +9,7 @@ import json
 from flask import Flask, request
 app = Flask(__name__)
 
-SCRUB = True if os.environ.get("SCRUB_PII") and os.environ.get("SCRUB_PII").lower != 'false' else False
+SCRUB = True if os.environ.get("PDAGENTD_SCRUB_PII") and os.environ.get("PDAGENTD_SCRUB_PII").lower != 'false' else False
 
 @app.route('/integration/<routing_key>/enqueue', methods=['POST'])
 def enqueue_integration(routing_key):

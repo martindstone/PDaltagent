@@ -9,22 +9,22 @@ from pdaltagent.config import app
 from celery.utils.log import get_task_logger
 from celery import chain
 
-PD_API_TOKEN = os.environ.get("PD_API_TOKEN")
-WEBHOOK_DEST_URL = os.environ.get("WEBHOOK_DEST_URL")
-IS_OVERVIEW = 'false' if os.environ.get("GET_ALL_LOG_ENTRIES") and os.environ.get("GET_ALL_LOG_ENTRIES").lower != 'false' else 'true'
+PD_API_TOKEN = os.environ.get("PDAGENTD_API_TOKEN")
+WEBHOOK_DEST_URL = os.environ.get("PDAGENTD_WEBHOOK_DEST_URL")
+IS_OVERVIEW = 'false' if os.environ.get("PDAGENTD_GET_ALL_LOG_ENTRIES") and os.environ.get("PDAGENTD_GET_ALL_LOG_ENTRIES").lower != 'false' else 'true'
 
 POLLING_INTERVAL_SECONDS = 10
-if os.environ.get("POLLING_INTERVAL_SECONDS"):
+if os.environ.get("PDAGENTD_POLLING_INTERVAL_SECONDS"):
     try:
-        POLLING_INTERVAL_SECONDS = int(os.environ.get("POLLING_INTERVAL_SECONDS"))
+        POLLING_INTERVAL_SECONDS = int(os.environ.get("PDAGENTD_POLLING_INTERVAL_SECONDS"))
     except:
         pass
 
 # keep activity db rows for 30 days
 KEEP_ACTIVITY_SECONDS = 30*24*60*60
-if os.environ.get("KEEP_ACTIVITY_SECONDS"):
+if os.environ.get("PDAGENTD_KEEP_ACTIVITY_SECONDS"):
     try:
-        KEEP_ACTIVITY_SECONDS = int(os.environ.get("KEEP_ACTIVITY_SECONDS"))
+        KEEP_ACTIVITY_SECONDS = int(os.environ.get("PDAGENTD_KEEP_ACTIVITY_SECONDS"))
     except:
         pass
 
@@ -49,11 +49,11 @@ def check_activity_store(sender, **kwargs):
 @app.on_after_finalize.connect
 def setup_periodic_tasks(sender, **kwargs):
     if not PD_API_TOKEN:
-        print(f"Can't get log entries because no token is set. Please set PD_API_TOKEN environment variable if you want to poll PD log entries")
+        print(f"Can't get log entries because no token is set. Please set PDAGENTD_API_TOKEN environment variable if you want to poll PD log entries")
         return
 
     if not WEBHOOK_DEST_URL:
-        print(f"Can't send webhooks because no destination URL is set. Please set WEBHOOK_DEST_URL environment variable if you want to send webhooks")
+        print(f"Can't send webhooks because no destination URL is set. Please set PDAGENTD_WEBHOOK_DEST_URL environment variable if you want to send webhooks")
         return
 
     sender.add_periodic_task(float(POLLING_INTERVAL_SECONDS), poll_pd_log_entries.s())

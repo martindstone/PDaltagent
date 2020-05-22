@@ -1,11 +1,14 @@
 FROM alpine:latest
-RUN apk add --no-cache python3 supervisor sqlite
+RUN apk add --no-cache python3 supervisor sqlite openssl
 
 RUN addgroup celery
 RUN adduser --ingroup celery --disabled-password --no-create-home celery
 
 WORKDIR /etc
 COPY pdaltagent/scripts/supervisord.conf .
+
+WORKDIR /etc/pdagentd/ssl
+RUN openssl req -x509 -newkey rsa:4096 -nodes -out cert.pem -keyout key.pem -days 3650 -subj "/C=US/ST=CA/L=San Francisco/CN=pagerduty.com"
 
 WORKDIR /tmp
 COPY dist/PDaltagent*.whl .
