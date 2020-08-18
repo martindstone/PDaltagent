@@ -41,9 +41,10 @@ def is_valid_integration_key(str):
 def is_valid_v2_payload(payload):
     try:
         assert payload["event_action"] in ["trigger", "acknowledge", "resolve"]
-        assert payload["payload"]["severity"] in ["info", "warning", "error", "critical"]
-        assert payload["payload"]["summary"]
-        assert payload["payload"]["source"]
+        if payload["event_action"] == "trigger":
+            assert payload["payload"]["severity"] in ["info", "warning", "error", "critical"]
+            assert payload["payload"]["summary"]
+            assert payload["payload"]["source"]
     except:
         return False
     return True
