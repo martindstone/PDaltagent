@@ -121,9 +121,11 @@ def main():
             body["payload"]["class"] = args.event_class
 
     r = requests.post(f"{BASE_URL}/v2/enqueue", json=body, verify=VERIFY_CERT)
-    r.raise_for_status()
+
     if not args.quiet:
         print(r.text)
+
+    r.raise_for_status()
 
 if __name__ == '__main__':
     main()
