@@ -18,7 +18,7 @@ def enqueue_integration(routing_key):
 		return "Bad request\n", 400
 
 	if SCRUB:
-		body = json.loads(scrub(json.dumps(body)))
+		body = scrub(body)
 
 	send_to_pd.delay(routing_key, body, destination_type="v1")
 	return "Message enqueued\n"
@@ -30,7 +30,7 @@ def enqueue_x_ere(routing_key):
 		return "Bad request\n", 400
 
 	if SCRUB:
-		body = json.loads(scrub(json.dumps(body)))
+		body = scrub(body)
 
 	send_to_pd.delay(routing_key, body, destination_type="x-ere")
 	return "Message enqueued\n"
@@ -53,7 +53,7 @@ def enqueue_v2():
 		return "Invalid routing key found in payload\n", 400
 
 	if SCRUB:
-		body = json.loads(scrub(json.dumps(body)))
+		body = scrub(body)
 
 	send_to_pd.delay(routing_key, body, destination_type="v2")
 	return "Message enqueued\n"

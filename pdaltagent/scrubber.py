@@ -1,3 +1,4 @@
+import json
 import re
 
 # adapted from https://github.com/madisonmay/CommonRegex
@@ -38,8 +39,15 @@ regexes = {
     "ssn_number"      : ssn
 }
 
-def scrub(string_in):
-    string = string_in
+def scrub(body_in):
+    body = dict(body_in)
+    routing_key = None
+    if 'routing_key' in body:
+        routing_key = body['routing_key']
+    string = json.dumps(body)
     for (name, regex) in regexes.items():
         string = regex.sub(f"{{{{{name.upper()}}}}}", string)
-    return string
+    body = json.loads(string)
+    if routing_key:
+        body['routing_key'] = routing_key
+    return body
