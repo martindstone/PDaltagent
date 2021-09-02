@@ -1,5 +1,6 @@
 import re
 import json
+import urllib
 import requests
 import datetime
 
@@ -51,6 +52,10 @@ def is_valid_v2_payload(payload):
 
 def send_event(routing_key, payload, base_url="https://events.pagerduty.com", destination_type="v2"):
 
+    session = requests.Session()                                                                     
+    if urllib.request.getproxies():                                                                  
+        session.proxies.update(urllib.request.getproxies())
+
     url = f"{base_url}/v2/enqueue"
     if destination_type in ["x-ere", "routing", "ger"]:
         url = f"{base_url}/x-ere/{routing_key}"
@@ -68,7 +73,7 @@ def send_event(routing_key, payload, base_url="https://events.pagerduty.com", de
     )
 
     prepped = req.prepare()
-    response = requests.Session().send(prepped)
+    response = session.send(prepped)
     response.raise_for_status()
     if len(response.content) > 0:
         return response.json()
@@ -80,6 +85,9 @@ def request(token=None, endpoint=None, method="GET", params=None, data=None, add
     if not endpoint or not token:
         return None
 
+    session = requests.Session()                                                                     
+    if urllib.request.getproxies():                                                                  
+        session.proxies.update(urllib.request.getproxies())
 
     url = '/'.join([BASE_URL, endpoint])
     headers = {
@@ -102,7 +110,7 @@ def request(token=None, endpoint=None, method="GET", params=None, data=None, add
     )
 
     prepped = req.prepare()
-    response = requests.Session().send(prepped)
+    response = session.send(prepped)
     response.raise_for_status()
     if len(response.content) > 0:
         return response.json()

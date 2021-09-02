@@ -14,9 +14,13 @@ services:
       - '15672:15672'
     restart: always
   pdagentd:
-    image: martindstone/pdaltagent:0.1
+    image: martindstone/pdaltagent:0.2
     container_name: pdaltagent_pdagentd
     environment:
+      # Set HTTP_PROXY and HTTPS_PROXY if you are in a proxy environment
+      # - HTTP_PROXY=http://my.proxy:port
+      # - HTTPS_PROXY=http://my.proxy:port
+
       # Set CELERY_BROKER_URL to the URL of a backend for Celery:
       - CELERY_BROKER_URL=pyamqp://pdaltagent:pdaltagent@pdaltagent_rabbitmq//
 
