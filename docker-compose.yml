@@ -17,9 +17,10 @@ services:
     image: martindstone/pdaltagent:0.2
     container_name: pdaltagent_pdagentd
     environment:
-      # Set HTTP_PROXY and HTTPS_PROXY if you are in a proxy environment
+      # Set HTTP_PROXY, HTTPS_PROXY and NO_PROXY if you are in a proxy environment
       # - HTTP_PROXY=http://my.proxy:port
       # - HTTPS_PROXY=http://my.proxy:port
+      # - NO_PROXY=host1,host1,...
 
       # Set CELERY_BROKER_URL to the URL of a backend for Celery:
       - CELERY_BROKER_URL=pyamqp://pdaltagent:pdaltagent@pdaltagent_rabbitmq//
@@ -32,6 +33,14 @@ services:
 
       # Optional: Set PDAGENTD_WEBHOOK_DEST_URL to a URL where you want the agent to send the webhooks
       # - PDAGENTD_WEBHOOK_DEST_URL=<YOUR_DESTINATION_URL>
+
+      # Optional: Only send webhooks for events in these services
+      # - 'PDAGENTD_WEBHOOK_SERVICES_LIST=[
+      #     "PXXXXXX",
+      #     "PYYYYYY",
+      #     "...",
+      #   ]
+      # '
 
       # Very Optional: Set PDAGENTD_GET_ALL_LOG_ENTRIES if you want the agent to generate additional 
       # webhooks for non-standard incident lifecycle events, like priority changes and responder requests 

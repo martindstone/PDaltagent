@@ -1,4 +1,5 @@
 import re
+import os
 import json
 import urllib
 import requests
@@ -15,6 +16,8 @@ import datetime
 # requests_log.propagate = True
 
 BASE_URL = 'https://api.pagerduty.com'
+WEBHOOK_CONFIG_JSON = os.environ.get("PDAGENTD_WEBHOOK_CONFIG_JSON")
+WEBHOOK_SERVICES_LIST = os.environ.get("PDAGENTD_WEBHOOK_SERVICES_LIST")
 
 def auth_header_for_token(token):
     if re.search("^[0-9a-f]{64}$", token):
@@ -170,6 +173,13 @@ def fetch_log_entries(token=None, params=None):
 def ile_to_webhook(ile):
     event = ile['type'].split('_')[0]
     short_service = ile['incident']['service']
+
+    if WEBHOOK_SERVICES_LIST:
+        services_list = json.loads(WEBHOOK_SERVICES_LIST)
+        if not short_service['id'] in services_list:
+            print(f"Service {short_service['id']} is not in {services_list}")
+            return None
+
     long_service = ile['service']
     long_incident = ile['incident']
     short_incident = dict((k, long_incident[k]) for k in ["id", "type", "summary", "self", "html_url"])
@@ -185,8 +195,14 @@ def ile_to_webhook(ile):
         "log_entries": [
             ile
         ],
-        "incident": long_incident
+        "incident": long_incident,
     }
+    if WEBHOOK_CONFIG_JSON:
+        webhook_config = json.loads(WEBHOOK_CONFIG_JSON)
+        message["webhook"] = {
+            "config": webhook_config
+        }
+
     webhook = {
         "messages": [
             message

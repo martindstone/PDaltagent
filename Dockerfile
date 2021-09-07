@@ -12,7 +12,7 @@ RUN openssl req -x509 -newkey rsa:4096 -nodes -out cert.pem -keyout key.pem -day
 
 WORKDIR /tmp
 COPY dist/PDaltagent*.whl .
-RUN pip3 install ./PDaltagent-0.2.0*.whl
+RUN pip3 install ./PDaltagent-0.3.0*.whl
 COPY pdaltagent/scripts/create_activity_store.sql .
 RUN sqlite3 activity_store.db < create_activity_store.sql
 RUN chown celery:celery activity_store.db

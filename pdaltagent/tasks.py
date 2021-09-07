@@ -98,14 +98,19 @@ def poll_pd_log_entries():
             dups += 1
             continue
 
+        created_at = datetime.datetime.fromisoformat(ile['created_at'].rstrip('Z'))
+        new_iles.append((ile_id, created_at))
+
         incident_id = ile['incident']['id']
         if not ile_chains.get(incident_id):
             ile_chains[incident_id] = []
 
-        sig = send_webhook.si(WEBHOOK_DEST_URL, pd.ile_to_webhook(ile))
+        webhook_message = pd.ile_to_webhook(ile)
+        if webhook_message == None:
+            continue
+
+        sig = send_webhook.si(WEBHOOK_DEST_URL, webhook_message)
         ile_chains[incident_id].append(sig)
-        created_at = datetime.datetime.fromisoformat(ile['created_at'].rstrip('Z'))
-        new_iles.append((ile_id, created_at))
 
     c.executemany('insert into log_entries values (?, ?)', new_iles)
     conn.commit()
