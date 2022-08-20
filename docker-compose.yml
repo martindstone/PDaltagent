@@ -14,7 +14,7 @@ services:
       - '15672:15672'
     restart: always
   pdagentd:
-    image: martindstone/pdaltagent:0.2
+    image: martindstone/pdaltagent:0.4
     container_name: pdaltagent_pdagentd
     environment:
       # Set HTTP_PROXY, HTTPS_PROXY and NO_PROXY if you are in a proxy environment

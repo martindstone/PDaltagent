@@ -133,7 +133,7 @@ def clean_activity_store():
     return f"{r} rows deleted"
 
 def consume():
-    app.worker_main(['worker', '-n', 'events', '-A', 'pdaltagent.tasks', '-Q', 'pd_events', '-E', '-l', 'info'])
+    app.worker_main(['-A', 'pdaltagent.tasks', 'worker', '-n', 'events', '-Q', 'pd_events', '-E', '-l', 'info'])
 
 def poll():
-    app.worker_main(['worker', '-n', 'poller', '-A', 'pdaltagent.tasks', '-B', '-Q', 'pd_poller,pd_webhooks', '-E', '-l', 'info'])
+    app.worker_main(['-A', 'pdaltagent.tasks', 'worker', '-n', 'poller', '-B', '-Q', 'pd_poller,pd_webhooks', '-E', '-l', 'info'])
