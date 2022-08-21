@@ -4,14 +4,18 @@ import datetime
 import pdaltagent.pd as pd
 import requests
 import sqlite3
+import random
 from requests import HTTPError
 from pdaltagent.config import app
 from celery.utils.log import get_task_logger
-from celery import chain
+from celery import chain, Task
+
+logger = get_task_logger(__name__)
 
 PD_API_TOKEN = os.environ.get("PDAGENTD_API_TOKEN")
 WEBHOOK_DEST_URL = os.environ.get("PDAGENTD_WEBHOOK_DEST_URL")
 IS_OVERVIEW = 'false' if os.environ.get("PDAGENTD_GET_ALL_LOG_ENTRIES") and os.environ.get("PDAGENTD_GET_ALL_LOG_ENTRIES").lower != 'false' else 'true'
+LOG_EVENTS = os.environ.get("PDAGENTD_LOG_EVENTS", False)
 
 POLLING_INTERVAL_SECONDS = 10
 if os.environ.get("PDAGENTD_POLLING_INTERVAL_SECONDS"):
@@ -27,6 +31,10 @@ if os.environ.get("PDAGENTD_KEEP_ACTIVITY_SECONDS"):
         KEEP_ACTIVITY_SECONDS = int(os.environ.get("PDAGENTD_KEEP_ACTIVITY_SECONDS"))
     except:
         pass
+
+class SendTask(Task):
+    def on_failure(self, exc, task_id, args, kwargs, einfo):
+        logger.warn(f"Failed to send {args[1]!r} to {args[0]}: {exc}")
 
 @app.on_after_finalize.connect
 def check_activity_store(sender, **kwargs):
@@ -59,16 +67,26 @@ def setup_periodic_tasks(sender, **kwargs):
     sender.add_periodic_task(float(POLLING_INTERVAL_SECONDS), poll_pd_log_entries.s())
     sender.add_periodic_task(float(KEEP_ACTIVITY_SECONDS), clean_activity_store.s())
 
-@app.task(autoretry_for=(HTTPError,),
-          retry_kwargs={'max_retries': 10},
-          retry_backoff=15,
-          retry_backoff_max=60*60*2,
+@app.task(base=SendTask,
+          bind=True,
+          throws=(HTTPError,),
+          retry_backoff=True,
+          max_retries=None,
           acks_late=True)
-def send_to_pd(routing_key, payload, base_url="https://events.pagerduty.com", destination_type="v2"):
-    return (routing_key, pd.send_event(routing_key, payload, base_url, destination_type))
+def send_to_pd(self, routing_key, payload, base_url="https://events.pagerduty.com", destination_type="v2"):
+    if LOG_EVENTS:
+        logger.info(f"Sending {payload!r} to routing key {routing_key}, base URL {base_url}, type {destination_type}")
+    r = None
+    try:
+        r = pd.send_event(routing_key, payload, base_url, destination_type)
+    except HTTPError as e:
+        if e.response.status_code == 429:
+            raise self.retry(exc=e, countdown=int(random.uniform(10, 15) * (self.request.retries + 1)))
+        raise e
+    return (routing_key, r)
 
-@app.task(autoretry_for=(HTTPError,),
-          retry_kwargs={'max_retries': 10},
+@app.task(base=SendTask,
+          throws=(HTTPError,),
           retry_backoff=15)
 def send_webhook(url, payload):
     return (url, requests.post(url, json=payload))
