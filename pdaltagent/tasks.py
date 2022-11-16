@@ -13,7 +13,7 @@ from celery import Task
 
 class SendTask(Task):
     def on_failure(self, exc, task_id, args, kwargs, einfo):
-        logger.warn(f"Failed to send {args[1]!r} to {args[0]}: {exc}")
+        logger.warning(f"Failed to send {args[1]!r} to {args[0]}: {exc}")
 
 plugin_host = PluginHost(True if os.environ.get("PDAGENTD_DEBUG") else False)
 
@@ -44,7 +44,7 @@ def send_to_pd(self, routing_key, payload, base_url="https://events.pagerduty.co
         r = pd.send_event(_routing_key, _payload, base_url, _destination_type)
     except HTTPError as e:
         if e.response.status_code == 429:
-            raise self.retry(exc=e, countdown=int(random.uniform(10, 15) * (self.request.retries + 1)))
+            raise self.retry(exc=e, countdown=int(random.uniform(3, 5) * (self.request.retries + 1)))
         raise e
     return (_routing_key, r)
 
@@ -69,6 +69,6 @@ def send_webhook(self, url, payload):
         r = requests.post(_url, json=_payload)
     except HTTPError as e:
         if e.response.status_code == 429:
-            raise self.retry(exc=e, countdown=int(random.uniform(10, 15) * (self.request.retries + 1)))
+            raise self.retry(exc=e, countdown=int(random.uniform(3, 5) * (self.request.retries + 1)))
         raise e
     return (_url, r)
