@@ -4,7 +4,6 @@ from pdaltagent.tasks import send_to_pd
 from pdaltagent.scrubber import scrub
 import pdaltagent.pd as pd
 import os
-import json
 
 from flask import Flask, request
 app = Flask(__name__)
