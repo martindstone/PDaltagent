@@ -10,9 +10,10 @@ class Plugin():
     filter_webhooks - to filter reconstructed webhooks from PagerDuty
     fetch_events - to go get events from somewhere and send them to PagerDuty at some interval
 
-  This module will get imported inside the Python environment where PDaltagent is running, so if
-  you're running in Docker and you need to use other pip packages, etc., you can install them with the 
-  root set to this directory (it's mounted at ./pdaltagent_pdagentd/plugins in the stock docker-compose.yml.)
+  This module will get imported inside the Python environment where PDaltagent is running. If
+  you're running in Docker and you need to use other pip packages, use the `add_pip_pkg` command
+  that's installed in /usr/local/bin. This installs pip packages in an include directory that's mounted at
+  ./pdaltagent_pdagentd/plugins/lib outside the container (see the docker-compose.yml for details)
   """
 
   def __init__(self):
