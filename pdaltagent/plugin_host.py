@@ -7,6 +7,7 @@ import logging
 import sys
 import os
 import validators
+from pathlib import Path
 
 from celery.app.defaults import DEFAULT_PROCESS_LOG_FMT
 from celery.utils.log import get_task_logger
@@ -23,7 +24,7 @@ class PluginHost:
 
 
   def __init__(self, debug=False):
-    modlibpath = f"{pdaltagent.plugins.__path__[0]}/lib"
+    modlibpath = str(Path(pdaltagent.__path__[0], 'plugin-lib').resolve().absolute())
     if not modlibpath in sys.path:
       sys.path.append(modlibpath)
 
