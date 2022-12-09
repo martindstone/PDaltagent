@@ -10,6 +10,7 @@ from pdaltagent.config import MONGODB_URL, PD_API_TOKEN, WEBHOOK_DEST_URL, IS_OV
 from celery import chain
 from pymongo import MongoClient
 
+from cron_converter import Cron
 from pdaltagent.tasks import send_to_pd, send_webhook
 
 from celery.utils.log import get_task_logger
@@ -23,8 +24,18 @@ plugin_host = PluginHost(True if os.environ.get("PDAGENTD_DEBUG") else False)
 @app.task()
 def run_fetch_events_method(method_index):
     method = plugin_host.methods['fetch_events'][method_index]['method']
-    timeout = float(plugin_host.methods['fetch_events'][method_index].get('fetch_interval', POLLING_INTERVAL_SECONDS))
-    logger.info(f"Running fetch_events task from module {inspect.getmodule(method).__name__}")
+    try:
+        timeout = float(plugin_host.methods['fetch_events'][method_index].get('fetch_interval', POLLING_INTERVAL_SECONDS))
+    except:
+        c = Cron(plugin_host.methods['fetch_events'][method_index].get('fetch_interval'))
+        now = datetime.datetime.now()
+        cschedule = c.schedule(now)
+        next = cschedule.next()
+        if next < now:
+            next = cschedule.next()
+        timeout = next.timestamp() - now.timestamp()
+
+    logger.info(f"Running fetch_events task from module {inspect.getmodule(method).__name__} with timeout {timeout}")
     try:
         events = func_timeout(timeout, method)
     except FunctionTimedOut:

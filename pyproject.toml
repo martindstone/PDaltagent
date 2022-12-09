@@ -13,6 +13,7 @@ gunicorn = "^20"
 pymongo = "^4.2.0"
 validators = "^0.20.0"
 func-timeout = "^4.3.5"
+cron-converter = "^1.0.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7"
