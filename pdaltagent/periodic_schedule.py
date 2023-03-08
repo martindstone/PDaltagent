@@ -7,7 +7,7 @@ from pdaltagent.plugin_host import PluginHost
 from pdaltagent.config import MONGODB_URL, PD_API_TOKEN, WEBHOOK_DEST_URL, IS_OVERVIEW, POLLING_INTERVAL_SECONDS, KEEP_ACTIVITY_SECONDS
 from pdaltagent.periodic_tasks import poll_pd_log_entries
 from pymongo import MongoClient
-from cron_converter import Cron
+from croniter import croniter
 
 from celery.utils.log import get_task_logger
 from celery.schedules import crontab
@@ -23,11 +23,7 @@ if os.getenv('PDAGENTD_DEBUG'):
 def is_crontab_schedule(s):
     if not (isinstance(s, str) and len(s) > 0):
         return False
-    try:
-        Cron(s)
-        return True
-    except:
-        return False
+    return croniter.is_valid(s)
 
 @app.on_after_finalize.connect
 def setup_periodic_tasks(sender, **kwargs):

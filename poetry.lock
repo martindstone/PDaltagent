@@ -159,18 +159,15 @@ optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [[package]]
-name = "cron-converter"
-version = "1.0.1"
-description = "Cron string parser and scheduler for Python"
+name = "croniter"
+version = "1.3.8"
+description = "croniter provides iteration for datetime object with cron like format"
 category = "main"
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 
 [package.dependencies]
 python-dateutil = "*"
-
-[package.extras]
-test = ["unittest"]
 
 [[package]]
 name = "decorator"
@@ -497,7 +494,7 @@ watchdog = ["watchdog"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "4819fb2070c4a65f119251d2c919d35a87b2d8e73a8f758ed91ed7874a733874"
+content-hash = "b883ab6eb2fc3628ce2b21bc3635cfb22a177753df8ddb80f78023d3f40a65a6"
 
 [metadata.files]
 amqp = [
@@ -544,9 +541,9 @@ colorama = [
     {file = "colorama-0.4.5-py2.py3-none-any.whl", hash = "sha256:854bf444933e37f5824ae7bfc1e98d5bce2ebe4160d46b5edf346a89358e99da"},
     {file = "colorama-0.4.5.tar.gz", hash = "sha256:e6c6b4334fc50988a639d9b98aa429a0b57da6e17b9a44f0451f930b6967b7a4"},
 ]
-cron-converter = [
-    {file = "cron-converter-1.0.1.tar.gz", hash = "sha256:1e9c3f0d2b0cc39b441abede5a4f499bf85fcd4af424be25889e5636fcf36b27"},
-    {file = "cron_converter-1.0.1-py3-none-any.whl", hash = "sha256:b1f72dd299db0eb95e5fb73de42a0957359bb42c5ff17ddd6308483553508f22"},
+croniter = [
+    {file = "croniter-1.3.8-py2.py3-none-any.whl", hash = "sha256:d6ed8386d5f4bbb29419dc1b65c4909c04a2322bd15ec0dc5b2877bfa1b75c7a"},
+    {file = "croniter-1.3.8.tar.gz", hash = "sha256:32a5ec04e97ec0837bcdf013767abd2e71cceeefd3c2e14c804098ce51ad6cd9"},
 ]
 decorator = [
     {file = "decorator-5.1.1-py3-none-any.whl", hash = "sha256:b8c3f85900b9dc423225913c5aace94729fe1fa9763b38939a95226f02d37186"},

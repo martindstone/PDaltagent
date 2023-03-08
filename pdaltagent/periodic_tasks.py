@@ -10,7 +10,7 @@ from pdaltagent.config import MONGODB_URL, PD_API_TOKEN, WEBHOOK_DEST_URL, IS_OV
 from celery import chain
 from pymongo import MongoClient
 
-from cron_converter import Cron
+from croniter import croniter
 from pdaltagent.tasks import send_to_pd, send_webhook
 
 from celery.utils.log import get_task_logger
@@ -27,13 +27,14 @@ def run_fetch_events_method(method_index):
     try:
         timeout = float(plugin_host.methods['fetch_events'][method_index].get('fetch_interval', POLLING_INTERVAL_SECONDS))
     except:
-        c = Cron(plugin_host.methods['fetch_events'][method_index].get('fetch_interval'))
+        if not croniter.is_valid(plugin_host.methods['fetch_events'][method_index].get('fetch_interval')):
+            logger.error(f"fetch_events task from module {inspect.getmodule(method).__name__} has an invalid fetch_interval!")
+            return
         now = datetime.datetime.now()
-        cschedule = c.schedule(now)
-        next = cschedule.next()
-        if next < now:
-            next = cschedule.next()
-        timeout = next.timestamp() - now.timestamp()
+        c = croniter(plugin_host.methods['fetch_events'][method_index].get('fetch_interval'), now)
+        t1 = c.next()
+        t2 = c.next()
+        timeout = t2 - t1
 
     logger.info(f"Running fetch_events task from module {inspect.getmodule(method).__name__} with timeout {timeout}")
     try:
