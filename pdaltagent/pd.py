@@ -75,9 +75,13 @@ def send_event(routing_key, payload, base_url="https://events.pagerduty.com", de
         json=payload
     )
 
-    prepped = req.prepare()
-    response = session.send(prepped)
+    prepped = session.prepare_request(req)
+
+    # Merge environment settings into session
+    settings = session.merge_environment_settings(prepped.url, {}, None, None, None)
+    response = session.send(prepped, **settings)
     response.raise_for_status()
+
     if len(response.content) > 0:
         return response.json()
     else:
@@ -112,8 +116,11 @@ def request(token=None, endpoint=None, method="GET", params=None, data=None, add
         json=data
     )
 
-    prepped = req.prepare()
-    response = session.send(prepped)
+    prepped = session.prepare_request(req)
+
+    # Merge environment settings into session
+    settings = session.merge_environment_settings(prepped.url, {}, None, None, None)
+    response = session.send(prepped, **settings)
     response.raise_for_status()
     if len(response.content) > 0:
         return response.json()
