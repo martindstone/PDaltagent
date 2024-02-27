@@ -13,8 +13,9 @@ services:
       # HTTP management UI
       - '15672:15672'
     restart: always
+
   pdagentd:
-    image: martindstone/pdaltagent:0.2
+    image: martindstone/pdaltagent:0.4-beta3
     container_name: pdaltagent_pdagentd
     environment:
       # Set HTTP_PROXY, HTTPS_PROXY and NO_PROXY if you are in a proxy environment
@@ -57,6 +58,12 @@ services:
       # Set PDSEND_SKIP_CERT_VERIFY if you want the pd-send command to skip SSL certificate verification
       # (for example if you are using a self-signed certificate:
       - PDSEND_SKIP_CERT_VERIFY=true
+
+    # some example bindmounts for SSL certs and supervisord.conf
+    # volumes:
+    #   - ./pdaltagent_pdagentd/ssl/cert.pem:/etc/pdagentd/ssl/cert.pem
+    #   - ./pdaltagent_pdagentd/ssl/key.pem:/etc/pdagentd/ssl/key.pem
+    #   - ./pdaltagent_pdagentd/supervisord.conf:/etc/supervisord.conf:ro
     ports:
       # flask
       - '8080:8080'
@@ -64,3 +71,28 @@ services:
     depends_on:
       - rabbit
     restart: always
+
+  mongo:
+    image: mongo
+    container_name: pdaltagent_mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    volumes:
+      - ./pdaltagent_pdagentd/mongo_data:/data/db
+    ports:
+      - 27017:27017
+
+  mongo-express:
+    image: mongo-express
+    container_name: pdaltagent_mongo-express
+    restart: always
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_BASICAUTH_USERNAME: pdaltagent
+      ME_CONFIG_BASICAUTH_PASSWORD: pdaltagent
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: example
+      ME_CONFIG_MONGODB_URL: mongodb://root:example@mongo:27017/
