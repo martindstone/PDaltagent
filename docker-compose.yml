@@ -59,8 +59,11 @@ services:
       # (for example if you are using a self-signed certificate:
       - PDSEND_SKIP_CERT_VERIFY=true
 
+    volumes:
+      - ./pdaltagent_pdagentd/plugins:/usr/lib/python3.11/site-packages/pdaltagent/plugins
+      - ./pdaltagent_pdagentd/plugin-lib:/usr/lib/python3.11/site-packages/pdaltagent/plugin-lib
+
     # some example bindmounts for SSL certs and supervisord.conf
-    # volumes:
     #   - ./pdaltagent_pdagentd/ssl/cert.pem:/etc/pdagentd/ssl/cert.pem
     #   - ./pdaltagent_pdagentd/ssl/key.pem:/etc/pdagentd/ssl/key.pem
     #   - ./pdaltagent_pdagentd/supervisord.conf:/etc/supervisord.conf:ro
