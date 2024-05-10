@@ -1,3 +1,4 @@
+import pdaltagent.default_plugins
 import pdaltagent.plugins
 import pdaltagent.pd
 import importlib
@@ -48,8 +49,8 @@ class PluginHost:
 
   def load_plugins(self):
     """Load all the plugins in the pdaltagent.plugins namespace"""
-
-    self.modnames = [x.name for x in pkgutil.iter_modules(pdaltagent.plugins.__path__, pdaltagent.plugins.__name__ + '.')]
+    self.default_plugin_modnames = [x.name for x in pkgutil.iter_modules(pdaltagent.default_plugins.__path__, pdaltagent.default_plugins.__name__ + '.')]
+    self.modnames = self.default_plugin_modnames + [x.name for x in pkgutil.iter_modules(pdaltagent.plugins.__path__, pdaltagent.plugins.__name__ + '.')]
     self.logger.debug(f"Found {len(self.modnames)} module names: {', '.join(self.modnames)}")
     self.modules = []
     for modname in self.modnames:

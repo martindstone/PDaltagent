@@ -2,6 +2,14 @@ import os
 from celery import Celery
 
 MONGODB_URL = os.getenv('MONGODB_URL', 'mongodb://root:example@mongo:27017/')
+
+PDAGENTD_ADMIN_USER = os.getenv('PDAGENTD_ADMIN_USER', 'pdaltagent@example.com')
+PDAGENTD_ADMIN_PASS = os.getenv('PDAGENTD_ADMIN_PASS', 'pdaltagent')
+PDAGENTD_ADMIN_DB = os.getenv('PDAGENTD_ADMIN_DB', 'pdaltagent-admin')
+SUPERVISOR_USER = os.getenv('SUPERVISOR_USER', 'pdaltagent')
+SUPERVISOR_PASS = os.getenv('SUPERVISOR_PASS', 'pdaltagent')
+SUPERVISOR_URL = os.getenv('SUPERVISOR_URL', f"http://{SUPERVISOR_USER}:{SUPERVISOR_PASS}@localhost:9001/RPC2")
+
 PD_API_TOKEN = os.environ.get("PDAGENTD_API_TOKEN")
 WEBHOOK_DEST_URL = os.environ.get("PDAGENTD_WEBHOOK_DEST_URL")
 IS_OVERVIEW = 'false' if os.environ.get("PDAGENTD_GET_ALL_LOG_ENTRIES") and os.environ.get("PDAGENTD_GET_ALL_LOG_ENTRIES").lower != 'false' else 'true'

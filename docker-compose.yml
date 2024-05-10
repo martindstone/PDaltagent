@@ -15,7 +15,7 @@ services:
     restart: always
 
   pdagentd:
-    image: martindstone/pdaltagent:0.4-beta3
+    image: martindstone/pdaltagent:0.5beta1
     container_name: pdaltagent_pdagentd
     environment:
       # Set HTTP_PROXY, HTTPS_PROXY and NO_PROXY if you are in a proxy environment
@@ -25,6 +25,11 @@ services:
 
       # Set CELERY_BROKER_URL to the URL of a backend for Celery:
       - CELERY_BROKER_URL=pyamqp://pdaltagent:pdaltagent@pdaltagent_rabbitmq//
+
+      # Set the admin user and password for the admin interface
+      # currently the user has to be an email address, but it doesn't have to be real
+      - PDAGENTD_ADMIN_USER=admin@example.com
+      - PDAGENTD_ADMIN_PASS=admin
 
       # Optional: Set PDAGENTD_API_TOKEN and PDAGENTD_WEBHOOK_DEST_URL if you want the agent to poll PagerDuty logs and 
       # send reconstituted PagerDuty webhooks to a URL that you specify
@@ -68,9 +73,13 @@ services:
     #   - ./pdaltagent_pdagentd/ssl/key.pem:/etc/pdagentd/ssl/key.pem
     #   - ./pdaltagent_pdagentd/supervisord.conf:/etc/supervisord.conf:ro
     ports:
-      # flask
+      # flask (events)
       - '8080:8080'
       - '8443:8443'
+      # admin
+      - '8444:8444'
+      # supervisor
+      - '9001:9001'
     depends_on:
       - rabbit
     restart: always
