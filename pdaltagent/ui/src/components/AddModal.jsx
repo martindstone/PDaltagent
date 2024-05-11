@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useState } from 'react';
+import {
+    useCallback,
+    useEffect,
+    useState,
+    useMemo,
+} from 'react';
+
 import {
     Modal,
     ModalOverlay,
@@ -26,8 +32,8 @@ import './DatePickerComponent.scss';
 const AddMaintenanceModal = ({ isOpen, onClose, setDataHasChanged }) => {
     const toast = useToast();
 
-    const now = new Date();
-    const inOneHour = new Date(now.getTime() + 60 * 60 * 1000);
+    const now = useMemo(() => new Date(), []);
+    const inOneHour = useMemo(() => new Date(now.getTime() + 60 * 60 * 1000), [now]);
 
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
@@ -73,6 +79,18 @@ const AddMaintenanceModal = ({ isOpen, onClose, setDataHasChanged }) => {
         }
     }, [name, start, end, condition, frequency, duration]);
 
+    const clearState = useCallback(() => {
+        setName('');
+        setDescription('');
+        setStart(now);
+        setEnd(inOneHour);
+        setCondition({});
+        setFrequency('Once');
+        setDuration(0);
+        setValid(false);
+        setValidationHint('');
+    }, [now, inOneHour]);
+
     const handleAddMaintenance = useCallback((e) => {
         e.preventDefault();
         const csrfToken = sessionStorage.getItem('csrfToken');
@@ -99,6 +117,7 @@ const AddMaintenanceModal = ({ isOpen, onClose, setDataHasChanged }) => {
         .then((data) => {
             if (data?.status === 'ok') {
                 onClose();
+                clearState();
                 toast({
                     title: 'Maintenance window added',
                     status: 'success',
@@ -124,7 +143,7 @@ const AddMaintenanceModal = ({ isOpen, onClose, setDataHasChanged }) => {
                 isClosable: true,
             });
         });
-    }, [setDataHasChanged, name, description, start, end, condition, frequency, duration, onClose, toast]);
+    }, [setDataHasChanged, name, description, start, end, condition, frequency, duration, onClose, toast, clearState]);
 
     return (
         <Modal
