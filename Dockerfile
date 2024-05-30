@@ -1,6 +1,5 @@
-FROM amd64/alpine:latest
-RUN apk add --no-cache bash python3 py3-pip py3-wheel supervisor openssl curl nodejs net-snmp
-RUN sh -c "$(curl -sL https://raw.githubusercontent.com/martindstone/pagerduty-cli/master/install.sh)"
+FROM alpine:latest
+RUN apk add --no-cache bash python3=3.12.3-r1 py3-pip=24.0-r2 py3-wheel=0.42.0-r1 supervisor openssl curl nodejs net-snmp
 
 RUN addgroup celery
 RUN adduser --ingroup celery --disabled-password --no-create-home celery

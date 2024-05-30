@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import {
   Box,
@@ -14,16 +14,20 @@ import LogoutButton from './components/LogoutButton';
 import TopMenu from './components/TopMenu';
 
 import MyTable from './components/MyTable';
-import AddModal from './components/AddModal';
+import MaintenanceModal from './components/MaintenanceModal';
 
 import UserModal from './components/users/UserModal';
-// import AddUserModal from './components/users/AddUserModal';
+
+import {
+  addMaint,
+} from './util/fetches';
 
 function App() {
   const toast = useToast();
 
   const [needsRefresh, setNeedsRefresh] = useState(true);
   const [needsReload, setNeedsReload] = useState(false);
+  const [isReloading, setIsReloading] = useState(false);
   const [dataHasChanged, setDataHasChanged] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loggedInUser, setLoggedInUser] = useState(null);
@@ -59,7 +63,12 @@ function App() {
     return loggedInUser?.roles?.includes('admin');
   }, [loggedInUser]);
 
-  // get csrf token
+  useEffect(() => {
+    if (dataHasChanged) {
+      setNeedsReload(true);
+    }
+  }, [dataHasChanged]);
+
   useEffect(() => {
     if (isLoggedIn) {
       fetch('/login', {
@@ -84,6 +93,7 @@ function App() {
 
   // get maints
   useEffect(() => {
+    console.log('useEffect', needsRefresh, isLoggedIn, dataHasChanged)
     if (!needsRefresh && !dataHasChanged) {
       return;
     }
@@ -91,6 +101,7 @@ function App() {
       setMaints([]);
       return;
     }
+    console.log('Fetching maintenance windows')
     fetch('/maints', {
       method: 'GET',
       headers: {
@@ -113,13 +124,12 @@ function App() {
     })
     .finally(() => {
       setNeedsRefresh(false);
+      setDataHasChanged(false);
     });
   }, [toast, isLoggedIn, needsRefresh, dataHasChanged, setMaints]);
 
-  useEffect(() => {
-    if (!needsReload) {
-      return;
-    }
+  const reloadServices = useCallback(() => {
+    setIsReloading(true);
     const csrfToken = sessionStorage.getItem('csrfToken');
     fetch('/restart', {
       method: 'POST',
@@ -140,7 +150,7 @@ function App() {
       } else {
           toast({
               title: 'Failed to restart services',
-              status: 'success',
+              status: 'error',
               duration: 3000,
               isClosable: true,
           });
@@ -150,21 +160,54 @@ function App() {
         toast({
             title: 'Failed to restart services',
             description: error,
-            status: 'success',
+            status: 'error',
             duration: 3000,
             isClosable: true,
         });
     })
     .finally(() => {
       setNeedsReload(false);
+      setIsReloading(false);
       setDataHasChanged(false);
     });
-  }, [needsReload, toast]);
+  }, [toast]);
+
+  const handleAddMaint = (maint) => {
+    addMaint(maint)
+    .then((data) => {
+      if (data?.status === 'ok') {
+        onAddClose();
+        toast({
+          title: 'Maintenance window added',
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+        });
+        setDataHasChanged(true);
+      } else {
+        toast({
+          title: 'Failed to add maintenance window',
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+      toast({
+        title: 'Failed to add maintenance window',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    });
+  }
 
   return (
     <Box position="fixed" top={0} left={0} right={0} bottom={0} overflow="hidden">
       <LoginModal isOpen={isOpen} onClose={onClose} />
-      <AddModal isOpen={isAddOpen} onClose={onAddClose} setDataHasChanged={setDataHasChanged} />
+      <MaintenanceModal isOpen={isAddOpen} onClose={onAddClose} onSubmit={handleAddMaint} />
       <UserModal isOpen={isUserModalOpen} onOpen={onUserModalOpen} onClose={onUserModalClose} isAdmin={isAdmin} />
       {isLoggedIn && (
         <>
@@ -175,15 +218,15 @@ function App() {
               </Box>
               <Text fontSize="xl" fontWeight="bold">Maintenance Windows</Text>
               <Box>
-                {dataHasChanged && (
+                {needsReload && (
                   <>
                     <Text display="inline" fontSize="sm" fontStyle="italic" mr={1}>Configuration modified</Text>
                     <Button
                       colorScheme="blue"
-                      onClick={() => setNeedsReload(true)}
-                      isDisabled={needsReload}
+                      onClick={() => reloadServices()}
+                      isDisabled={isReloading}
                     >
-                      {needsReload ? 'Restarting...' : 'Restart PDaltagent'}
+                      {isReloading ? 'Restarting...' : 'Restart PDaltagent'}
                     </Button>
                   </>
                 )}

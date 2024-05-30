@@ -35,16 +35,22 @@ import {
   Tabs,
   Tab,
   TabList,
+  useToast,
 } from '@chakra-ui/react';
 
 import Condition from './Condition';
 import DeleteModal from './DeleteModal';
+import MaintenanceModal from './MaintenanceModal';
 
 import {
   formatLocalShortDate,
   secondsToHuman,
   stringifyExpression,
 } from '../util/helpers'
+
+import {
+  updateMaint,
+} from '../util/fetches';
 
 const Filter = ({
   column,
@@ -69,7 +75,10 @@ const MyTable = ({
   data,
   setDataHasChanged,
 }) => {
+  const toast = useToast();
+
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
+  const { isOpen: isEditOpen, onOpen: onEditOpen, onClose: onEditClose } = useDisclosure();
   const [currentRecord, setCurrentRecord] = useState(null);
   const [globalFilter, setGlobalFilter] = useState('all');
 
@@ -79,6 +88,13 @@ const MyTable = ({
       onDeleteOpen();
     }
   }, [onDeleteOpen]);
+
+  const handleEditMaint = useCallback((row) => {
+    if (row.original.id) {
+      setCurrentRecord(row.original);
+      onEditOpen();
+    }
+  }, [onEditOpen]);
 
   const [pagination, setPagination] = useState({
     pageIndex: 0,
@@ -160,6 +176,14 @@ const MyTable = ({
         header: 'End',
         cell: info => formatLocalShortDate(info.getValue()),
       }),
+      columnHelper.accessor('updated_by', {
+        header: 'Updated By',
+        cell: info => info.getValue(),
+      }),
+      columnHelper.accessor('updated_at', {
+        header: 'Updated At',
+        cell: info => formatLocalShortDate(info.getValue()),
+      }),
       columnHelper.accessor('frequency', {
         header: 'Frequency',
         cell: info => {
@@ -176,13 +200,14 @@ const MyTable = ({
         id: 'actions',
         header: 'Actions',
         cell: info => (
-          <>
-            <Button ml={1} colorScheme="red" onClick={() => handleDelete(info.row)}>Delete</Button>
-          </>
+          <Flex>
+            <Button size="sm" ml={1} colorScheme="blue" onClick={() => handleEditMaint(info.row)}>Edit</Button>
+            <Button size="sm" ml={1} colorScheme="red" onClick={() => handleDelete(info.row)}>Delete</Button>
+          </Flex>
         ),
       }),
     ],
-    [columnHelper, handleDelete]
+    [columnHelper, handleDelete, handleEditMaint]
   )
 
   const filteredData = useMemo(() => {
@@ -213,7 +238,7 @@ const MyTable = ({
     initialState: {
       sorting: [
         {
-          id: 'end',
+          id: 'updated_at',
           desc: true,
         }
       ]
@@ -232,9 +257,43 @@ const MyTable = ({
     setGlobalFilter(tabValues[selectedTabIndex].value);
   }, [selectedTabIndex, tabValues]);
 
+  const handleEditSubmit = (maint) => {
+    const id = currentRecord.id;
+    updateMaint(id, maint)
+    .then((data) => {
+      if (data?.status === 'ok') {
+        onEditClose();
+        toast({
+          title: 'Maintenance window saved',
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+        });
+        setDataHasChanged(true);
+      } else {
+        toast({
+          title: 'Failed to save maintenance window',
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+      toast({
+        title: 'Failed to save maintenance window',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    });
+  }
+
   return (
     <Box p={2}>
       <DeleteModal isOpen={isDeleteOpen} onClose={onDeleteClose} record={currentRecord} setDataHasChanged={setDataHasChanged} />
+      <MaintenanceModal isOpen={isEditOpen} onClose={onEditClose} record={currentRecord} onSubmit={handleEditSubmit} />
       <div className="h-2" />
       <Tabs onChange={(index) => setSelectedTabIndex(index)} mb={2}>
         <TabList>
@@ -294,6 +353,7 @@ const MyTable = ({
                       textOverflow={cell.column.columnDef?.meta?.textOverflow || null}
                       whiteSpace={cell.column.columnDef?.meta?.whiteSpace || null}
                       key={cell.id}
+                      fontSize="sm"
                     >
                       {flexRender(
                         cell.column.columnDef.cell,

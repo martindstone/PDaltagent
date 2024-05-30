@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 
-import bleach
 import os
-import json
-import hashlib
 import xmlrpc.client
 import requests
 import uuid
@@ -12,6 +9,8 @@ from pdaltagent.config import MONGODB_URL, SUPERVISOR_URL, PDAGENTD_ADMIN_USER, 
 from pdaltagent.enrichment import Enrichment
 
 from pdaltagent.api.routes.users import users_blueprint
+from pdaltagent.api.routes.maints import maints_blueprint
+
 from pdaltagent.api.models.security import User, Role
 
 from flask import Flask, Response, redirect, render_template_string, send_from_directory, request, jsonify
@@ -21,18 +20,6 @@ from mongoengine.errors import NotUniqueError
 
 from flask_security import Security, MongoEngineUserDatastore, \
     UserMixin, RoleMixin, auth_required, hash_password, permissions_accepted, current_user
-
-def md5_hash(text):
-    return hashlib.md5(text.encode()).hexdigest()
-
-def require_json(f):
-    def decorated_function(*args, **kwargs):
-        if request.headers.get('Accept') != 'application/json':
-            return jsonify({'error': 'Unsupported Media Type'}), 415
-        return f(*args, **kwargs)
-    decorated_function.__name__ = f.__name__
-    return decorated_function
-
 class Api:
     def __init__(self):
         # Create app
@@ -122,6 +109,7 @@ class Api:
 
     def setup_routes(self):
         self.app.register_blueprint(users_blueprint)
+        self.app.register_blueprint(maints_blueprint)
 
         @self.app.route("/restart", methods=["POST"])
         @auth_required()
@@ -129,52 +117,17 @@ class Api:
             self.restart_all()
             return jsonify({"status": "ok"})
 
-        @self.app.route("/maints", methods=["GET"])
-        @require_json
-        @auth_required()
-        def list_maints():
-            return jsonify(self.app.enrich.maintenances)
-
-        @self.app.route("/maints", methods=["POST"])
-        @require_json
-        @auth_required()
-        def add_maint():
-            data = request.json
-            if not data:
-                return jsonify({"status": "error", "message": "No data provided"}), 400
-            for k in ["name", "start", "end", "condition", "frequency"]:
-                if not data.get(k):
-                    return jsonify({"status": "error", "message": f"Missing required field: {k}"}), 400
-            if not data.get("frequency").lower() in ["once", "daily", "weekly"]:
-                return jsonify({"status": "error", "message": "Invalid frequency"}), 400
-            if data.get("frequency").lower() != "once" and not data.get("frequency_data", {}).get("duration"):
-                return jsonify({"status": "error", "message": "Missing required field: duration"}), 400
-            if not data.get('id'):
-                # set id to md5 of the data
-                data['id'] = md5_hash(json.dumps(data))
-            if not data.get('maintenance_key'):
-                data['maintenance_key'] = 'MNT-' + md5_hash(json.dumps(data))[-12:]
-            data['created_by'] = current_user.email
-            print(json.dumps(data, indent=2))
-            r = self.app.enrich.add_maint(data)
-            del r['_id']
-            return jsonify({"status": "ok", "data": r})
-
-        @self.app.route("/maints/<id>", methods=["DELETE"])
-        @auth_required()
-        def delete_maint(id):
-            # r = enrich.delete_maint(id)
-            print(f"Deleting {id}")
-            self.app.enrich.delete_maint(id)
-            return jsonify({"status": "ok"})
-
         @self.app.route("/")
         @self.app.route("/<path:subpath>")
         # @auth_required()
         def home(subpath='index.html'):
-            if self.DEV:
-                return self.proxy_request(subpath)
-            return send_from_directory(os.path.join(self.app.root_path, 'static'), subpath)
+            try:
+                if self.DEV:
+                    return self.proxy_request(subpath)
+                return send_from_directory(os.path.join(self.app.root_path, 'static'), subpath)
+            except Exception as e:
+                print(f"Error: {e}")
+                return "An internal error occurred on home", 500
 
     # Create default roles and admin user from environment variables
     def setup_admin_user(self):

@@ -935,3 +935,23 @@ class Enrichment:
         else:
             print(f"delete_maint: maintenance window {id} not found")
         self.load_from_mongo()
+
+    def update_maint(self, id, new_maint):
+        """
+        Update a maintenance window.
+
+        Args:
+        id (str): The ID of the maintenance window to update.
+        maint_update (dict): The new maint window info
+
+        Returns:
+        None
+        """
+        collection = self.db[self.maintenances_collection_name]
+        r = collection.find_one({"id": id})
+        if r:
+            s = collection.update_one({"id": id}, {"$set": new_maint})
+            print(s)
+        else:
+            print(f"update_maint: maintenance window {id} not found")
+        self.load_from_mongo()
