@@ -161,7 +161,12 @@ const MaintenanceModal = ({ isOpen, onClose, record, onSubmit }) => {
                       <FormControl mt={2}>
                           <FormLabel>Condition</FormLabel>
                           <Box h="40vh">
-                              <ConditionEditor condition={condition} setCondition={setCondition} setIsValid={setConditionIsValid} />
+                              <ConditionEditor
+                                condition={condition}
+                                setCondition={setCondition}
+                                setIsValid={setConditionIsValid}
+                                initialMode="plaintext"
+                              />
                           </Box>
                       </FormControl>
                       <Flex direction="row" justify="space-between" align="center" wrap="wrap" gap="20px">
