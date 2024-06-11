@@ -2,9 +2,13 @@ import {
     Button,
 } from "@chakra-ui/react";
 
+import {
+    urlFor,
+} from '../util/helpers';
+
 const LogoutButton = () => {
     const handleLogout = () => {
-        fetch('/logout', {
+        fetch(urlFor('/logout'), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

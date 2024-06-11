@@ -94,7 +94,7 @@ const AddMaintenanceModal = ({ isOpen, onClose, setDataHasChanged }) => {
     const handleAddMaintenance = useCallback((e) => {
         e.preventDefault();
         const csrfToken = sessionStorage.getItem('csrfToken');
-        fetch('/maints', {
+        fetch(urlFor('/maints'), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

@@ -1,6 +1,10 @@
+import {
+  urlFor,
+} from './helpers';
+
 const addMaint = async (data) => {
   const csrfToken = sessionStorage.getItem('csrfToken');
-  const response = await fetch('/maints', {
+  const response = await fetch(urlFor('/maints'), {
       method: 'POST',
       headers: {
           'Content-Type': 'application/json',
@@ -14,7 +18,7 @@ const addMaint = async (data) => {
 
 const updateMaint = async (id, data) => {
   const csrfToken = sessionStorage.getItem('csrfToken');
-  const response = await fetch(`/maints/${id}`, {
+  const response = await fetch(urlFor(`/maints/${id}`), {
       method: 'PUT',
       headers: {
           'Content-Type': 'application/json',

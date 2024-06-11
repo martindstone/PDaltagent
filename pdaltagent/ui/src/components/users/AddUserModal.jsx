@@ -17,6 +17,8 @@ import {
     Checkbox,
 } from '@chakra-ui/react';
 
+import { urlFor } from '../../util/helpers';
+
 const AddUserModal = ({ isOpen, onClose }) => {
     const toast = useToast();
 
@@ -52,7 +54,7 @@ const AddUserModal = ({ isOpen, onClose }) => {
     const handleAddUser = useCallback((e) => {
         e.preventDefault();
         const csrfToken = sessionStorage.getItem('csrfToken');
-        fetch('/users', {
+        fetch(urlFor('/users'), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

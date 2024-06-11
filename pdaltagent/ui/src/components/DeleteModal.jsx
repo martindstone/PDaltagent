@@ -20,7 +20,7 @@ const DeleteMaintenanceModal = ({ isOpen, onClose, record, setDataHasChanged }) 
         e.preventDefault();
         const csrfToken = sessionStorage.getItem('csrfToken');
         console.log('Deleting maintenance:', id);
-        fetch(`/maints/${id}`, {
+        fetch(urlFor(`/maints/${id}`), {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',

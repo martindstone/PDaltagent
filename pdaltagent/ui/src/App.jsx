@@ -22,6 +22,10 @@ import {
   addMaint,
 } from './util/fetches';
 
+import {
+  urlFor,
+} from './util/helpers';
+
 function App() {
   const toast = useToast();
 
@@ -71,7 +75,7 @@ function App() {
 
   useEffect(() => {
     if (isLoggedIn) {
-      fetch('/login', {
+      fetch(urlFor('/login'), {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -102,7 +106,7 @@ function App() {
       return;
     }
     console.log('Fetching maintenance windows')
-    fetch('/maints', {
+    fetch(urlFor('/maints'), {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -131,7 +135,7 @@ function App() {
   const reloadServices = useCallback(() => {
     setIsReloading(true);
     const csrfToken = sessionStorage.getItem('csrfToken');
-    fetch('/restart', {
+    fetch(urlFor('/restart'), {
       method: 'POST',
       headers: {
           'Content-Type': 'application/json',

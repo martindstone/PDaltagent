@@ -30,6 +30,8 @@ import {
   UnlockIcon,
 } from '@chakra-ui/icons';
 
+import { urlFor } from '../../util/helpers';
+
 import AddUserModal from './AddUserModal';
 import DeleteUserModal from './DeleteUserModal';
 import ChangePasswordModal from './ChangePasswordModal';
@@ -49,7 +51,7 @@ const UserModal = ({
   const [userToChangePassword, setUserToChangePassword] = useState(null);
 
   const fetchUsers = useCallback(() => {
-    fetch('/users', {
+    fetch(urlFor('/users'), {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -99,7 +101,7 @@ const UserModal = ({
 
   const handleRoleChange = (email, isAdmin) => {
     const roles = isAdmin ? ['user', 'admin'] : ['user'];
-    fetch(`/users/${email}`, {
+    fetch(urlFor(`/users/${email}`), {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',

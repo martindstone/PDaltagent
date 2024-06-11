@@ -20,6 +20,7 @@ mongoengine = "~0.28"
 flask-security-too = "~5.4"
 bcrypt = "~4.0.1"
 bleach = "~6.1"
+setuptools = "^70.0.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7"

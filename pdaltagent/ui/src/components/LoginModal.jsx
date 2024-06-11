@@ -18,6 +18,10 @@ import {
     useToast,
   } from '@chakra-ui/react';
 
+import {
+    urlFor,
+} from '../util/helpers';
+
 const LoginModal = ({ isOpen, onClose }) => {
     const toast = useToast();
 
@@ -26,7 +30,7 @@ const LoginModal = ({ isOpen, onClose }) => {
 
     const handleLogin = useCallback((e) => {
         e.preventDefault();
-        fetch('/login', {
+        fetch(urlFor('/login'), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

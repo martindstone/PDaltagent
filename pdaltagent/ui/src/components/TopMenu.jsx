@@ -10,13 +10,17 @@ import {
     HamburgerIcon,
 } from '@chakra-ui/icons'
 
+import {
+    urlFor,
+} from '../util/helpers';
+
 const TopMenu = ({
     toast,
     setNeedsRefresh,
     openAddUserModal,
 }) => {
     const handleLogout = () => {
-        fetch('/logout', {
+        fetch(urlFor('/logout'), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -32,7 +36,7 @@ const TopMenu = ({
 
     const handleRestart = () => {
         const csrfToken = sessionStorage.getItem('csrfToken');
-        fetch('/restart', {
+        fetch(urlFor('/restart'), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

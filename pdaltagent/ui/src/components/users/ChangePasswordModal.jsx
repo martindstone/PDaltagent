@@ -16,6 +16,7 @@ import {
     useToast,
 } from '@chakra-ui/react';
 
+import { urlFor } from '../../util/helpers';
 
 const ChangePasswordModal = ({ isOpen, onClose, email }) => {
     const toast = useToast();
@@ -26,7 +27,7 @@ const ChangePasswordModal = ({ isOpen, onClose, email }) => {
         e.preventDefault();
         const csrfToken = sessionStorage.getItem('csrfToken');
         console.log('Changing password for user:', email);
-        fetch(`/users/${email}`, {
+        fetch(urlFor(`/users/${email}`), {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',

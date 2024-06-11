@@ -49,3 +49,7 @@ export const secondsToHuman = (seconds) => {
   const secs = seconds % 60;
   return `${days}d ${hours}h ${minutes}m ${secs}s`;
 }
+
+export const urlFor = (path) => {
+  return `${window.location.origin}${path}`;
+}
