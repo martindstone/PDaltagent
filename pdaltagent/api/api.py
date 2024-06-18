@@ -47,6 +47,8 @@ class Api:
             SECURITY_CSRF_IGNORE_UNAUTH_ENDPOINTS=True,
         )
 
+        self.app.url_map.strict_slashes = False
+
         # Create database connection object
         self.app.db = connect(alias=PDAGENTD_ADMIN_DB, db=PDAGENTD_ADMIN_DB, host=MONGODB_URL)
 
