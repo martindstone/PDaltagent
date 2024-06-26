@@ -1,4 +1,4 @@
-import { useRef, useState, useMemo, useEffect } from 'react';
+import { useRef, useState, useMemo, useEffect, useCallback } from 'react';
 import MonacoEditor from 'react-monaco-editor';
 import * as monaco from 'monaco-editor';
 import { VStack, HStack, Box, Button } from '@chakra-ui/react';
@@ -13,10 +13,11 @@ const ConditionEditor = ({ condition, setCondition, setIsValid, initialMode = "j
     const [errors, setErrors] = useState([]);
 
     useEffect(() => {
+        const lang = editorRef.current.getModel().getLanguageId();
         try {
-            if (language === "json") {
+            if (lang === "json") {
                 setConditionText(JSON.stringify(condition, null, 2));
-            } else if (language === "plaintext") {
+            } else if (lang === "plaintext") {
                 setConditionText(stringifyExpression(condition));
             }
         } catch (e) {
@@ -56,9 +57,11 @@ const ConditionEditor = ({ condition, setCondition, setIsValid, initialMode = "j
     }, [valid, setIsValid]);
 
 
-    const handleEditorChange = (newValue) => {
+    const handleEditorChange = useCallback((newValue) => {
+        const lang = editorRef.current.getModel().getLanguageId();
+
         setConditionText(newValue);
-        if (language === "json") {
+        if (lang === "json") {
             try {
                 const parsedCondition = JSON.parse(newValue);
                 stringifyExpression(parsedCondition); // to check if the parsed condition is valid
@@ -74,7 +77,7 @@ const ConditionEditor = ({ condition, setCondition, setIsValid, initialMode = "j
                 // do not set condition if invalid plaintext
             }
         }
-    };
+    }, [setCondition]);
 
     const editorDidMount = (editor) => {
         editorRef.current = editor;
