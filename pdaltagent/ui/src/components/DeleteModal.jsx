@@ -11,6 +11,9 @@ import {
     useToast,
 } from '@chakra-ui/react';
 
+import {
+    urlFor,
+} from '../util/helpers';
 
 const DeleteMaintenanceModal = ({ isOpen, onClose, record, setDataHasChanged }) => {
     const toast = useToast();
