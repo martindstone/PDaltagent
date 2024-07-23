@@ -19,7 +19,6 @@ def require_json(f):
     return decorated_function
 
 @maints_blueprint.route("/", methods=["GET"])
-@require_json
 @auth_required()
 def list_maints():
     return jsonify(current_app.enrich.maintenances)
