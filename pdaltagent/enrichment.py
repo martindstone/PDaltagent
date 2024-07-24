@@ -2,6 +2,7 @@ import traceback
 import re
 import json
 import datetime
+import hashlib
 from zoneinfo import ZoneInfo
 from pymongo import MongoClient, ASCENDING
 
@@ -91,7 +92,33 @@ class Enrichment:
             self.db[self.maintenances_collection_name].find({}, {"_id": 0})
         )
 
-        active_enrichments = list(self.db[self.enrich_metadata_collection_name].find({"active": True}, {"_id": 0}))
+        # create id for enrichments without id
+        # enrichments_without_id = self.db[self.enrich_metadata_collection_name].find(
+        #     {
+        #         "$or": [
+        #             {"id": {"$exists": False}},
+        #             {"id": None},
+        #             {"id": False},
+        #             {"id": 0},
+        #             {"id": ""},
+        #         ]
+        #     },
+        # )
+        # for enrichment in enrichments_without_id:
+        #     # create id for enrichment
+        #     mongo_id = enrichment.pop("_id")
+        #     id = hashlib.md5(json.dumps(enrichment).encode()).hexdigest()
+        #     print(f"Creating id for enrichment {enrichment['name']}: {id}")
+        #     self.db[self.enrich_metadata_collection_name].update_one(
+        #         {"_id": mongo_id}, {"$set": {"id": id}}
+        #     )
+
+        # Load enrichment metadata
+        active_enrichments = list(
+            self.db[self.enrich_metadata_collection_name].find(
+                {"active": True}, {"_id": 0}
+            )
+        )
         active_enrichments_sorted = sorted(active_enrichments, key=lambda x: x.get("order", float("inf")))
         self.enrichment_metadata = active_enrichments_sorted
 
@@ -647,7 +674,7 @@ class Enrichment:
         """
         if prepend_path is None:
             prepend_path = self.prepend_path
-        
+
         extraction = extraction_obj["config"]
         rule_id = extraction_obj.get("id", "no extraction id")
 
@@ -916,7 +943,7 @@ class Enrichment:
         collection.insert_one(maint_to_add)
         self.load_from_mongo()
         return maint_to_add
-    
+
     def delete_maint(self, id):
         """
         Delete a maintenance window.
@@ -955,3 +982,15 @@ class Enrichment:
         else:
             print(f"update_maint: maintenance window {id} not found")
         self.load_from_mongo()
+
+    def list_enrichments(self, active_only=False):
+        """
+        List the enrichment tags.
+
+        Returns:
+        A list of enrichment tags.
+        """
+        search = {"active": True} if active_only else {}
+        enrichments = list(self.db[self.enrich_metadata_collection_name].find(search, {"_id": 0}))
+        enrichments_sorted = sorted(enrichments, key=lambda x: x.get("order", float("inf")))
+        return enrichments_sorted

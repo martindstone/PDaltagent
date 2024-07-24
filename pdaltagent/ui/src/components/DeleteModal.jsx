@@ -22,7 +22,6 @@ const DeleteMaintenanceModal = ({ isOpen, onClose, record, setDataHasChanged }) 
     const handleDeleteMaintenance = useCallback((e) => {
         e.preventDefault();
         const csrfToken = sessionStorage.getItem('csrfToken');
-        console.log('Deleting maintenance:', id);
         fetch(urlFor(`/maints/${id}`), {
             method: 'DELETE',
             headers: {
@@ -33,7 +32,6 @@ const DeleteMaintenanceModal = ({ isOpen, onClose, record, setDataHasChanged }) 
         })
         .then((res) => res.json())
         .then((data) => {
-            console.log('Response:', data);
             if (data?.status === 'ok') {
                 toast({
                     title: 'Maintenance window deleted',

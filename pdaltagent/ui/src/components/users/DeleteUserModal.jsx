@@ -19,7 +19,6 @@ const DeleteMaintenanceModal = ({ isOpen, onClose, email }) => {
     const handleDeleteUser = useCallback((e) => {
         e.preventDefault();
         const csrfToken = sessionStorage.getItem('csrfToken');
-        console.log('Deleting user:', email);
         fetch(urlFor(`/users/${email}`), {
             method: 'DELETE',
             headers: {
@@ -30,7 +29,6 @@ const DeleteMaintenanceModal = ({ isOpen, onClose, email }) => {
         })
         .then((res) => res.json())
         .then((data) => {
-            console.log('Response:', data);
             if (data?.status === 'ok') {
                 toast({
                     title: 'User deleted',

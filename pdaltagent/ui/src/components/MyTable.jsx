@@ -46,6 +46,7 @@ import {
   formatLocalShortDate,
   secondsToHuman,
   stringifyExpression,
+  describeEvent,
 } from '../util/helpers'
 
 import {
@@ -186,15 +187,34 @@ const MyTable = ({
       }),
       columnHelper.accessor('frequency', {
         header: 'Frequency',
-        cell: info => {
-          const f = info.getValue();
-          if (['daily', 'weekly'].includes(f.toLowerCase())) {
-            const d = info.row.original.frequency_data.duration;
-            return `${f} (${secondsToHuman(d)})`;
+        cell: ({row}) => {
+          const frequency = row.original.frequency;
+          const start = new Date(row.original.start * 1000);
+          const end = new Date(row.original.end * 1000);
+          const duration = row.original.frequency_data?.duration || 0;
+          let cellText;
+          if (['daily', 'weekly'].includes(frequency.toLowerCase())) {
+            cellText = `${frequency} (${secondsToHuman(duration)})`;
           } else {
-            return f;
+            cellText = frequency;
           }
-        },
+          const tooltipText = describeEvent(start, end, duration, frequency);
+          return (
+            <Popover trigger="hover" size="content" preventOverflow>
+              <PopoverTrigger>
+                <Box overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
+                  {cellText}
+                </Box>
+              </PopoverTrigger>
+              <PopoverContent p={1} w="content">
+                <PopoverArrow />
+                <Box p={1}>
+                  <Text>{tooltipText}</Text>
+                </Box>
+              </PopoverContent>
+            </Popover>
+          );
+        }
       }),
       columnHelper.display({
         id: 'actions',
@@ -211,7 +231,6 @@ const MyTable = ({
   )
 
   const filteredData = useMemo(() => {
-    console.log('filter data', globalFilter);
     // start and end should be integer seconds since epoch
     const now = new Date().getTime() / 1000;
     if (globalFilter === 'active') {

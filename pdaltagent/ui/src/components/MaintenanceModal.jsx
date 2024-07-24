@@ -27,16 +27,29 @@ import {
 } from '@chakra-ui/react';
 
 import ConditionEditor from './bpql/ConditionEditor';
+import FrequencyDescription from './bpql/FrequencyDescription';
 import DurationInput from './DurationInput';
 
 const MaintenanceModal = ({ isOpen, onClose, record, onSubmit }) => {
-  const now = useMemo(() => new Date(), []);
-  const inOneHour = useMemo(() => new Date(now.getTime() + 60 * 60 * 1000), [now]);
+  const defaultStart = useMemo(() => {
+    const start = new Date();
+    start.setHours(start.getHours() + 1);
+    start.setMinutes(0);
+    start.setSeconds(0);
+    start.setMilliseconds(0);
+    return start;
+  }, []);
+
+  const defaultEnd = useMemo(() => {
+    const end = new Date(defaultStart);
+    end.setHours(end.getHours() + 1);
+    return end;
+  }, [defaultStart]);
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [start, setStart] = useState(now);
-  const [end, setEnd] = useState(inOneHour);
+  const [start, setStart] = useState(defaultStart);
+  const [end, setEnd] = useState(defaultEnd);
   const [frequency, setFrequency] = useState('Once');
   const [duration, setDuration] = useState(0);
   const [condition, setCondition] = useState({ "=": ["hostname", "localhost"] });
@@ -48,13 +61,13 @@ const MaintenanceModal = ({ isOpen, onClose, record, onSubmit }) => {
       if (record) {
           setName(record.name || '');
           setDescription(record.description || '');
-          setStart(record.start ? new Date(record.start * 1000) : now);
-          setEnd(record.end ? new Date(record.end * 1000) : inOneHour);
+          setStart(record.start ? new Date(record.start * 1000) : defaultStart);
+          setEnd(record.end ? new Date(record.end * 1000) : defaultEnd);
           setFrequency(record.frequency || 'Once');
           setDuration(record.frequency_data?.duration || 0);
           setCondition(record.condition || { "=": ["hostname", "localhost"] });
       }
-  }, [record, now, inOneHour]);
+  }, [record, defaultStart, defaultEnd]);
 
   useEffect(() => {
       // setValid to true if all fields are filled
@@ -89,6 +102,25 @@ const MaintenanceModal = ({ isOpen, onClose, record, onSubmit }) => {
           }
       }
   }, [name, start, end, condition, frequency, duration, conditionIsValid]);
+
+  const handleFrequencyChange = useCallback((e) => {
+      if (frequency === 'Once') {
+          setDuration(3600);
+      }
+      if (e.target.value === 'Once') {
+          setDuration(0);
+      }
+      setFrequency(e.target.value);
+  }, [frequency]);
+
+  const handleStartChange = useCallback((date) => {
+      setStart(date);
+      if (date >= end) {
+        const newStart = new Date(date);
+        newStart.setHours(newStart.getHours() + 1);
+        setEnd(newStart);
+      }
+  }, [end]);
 
   const handleSubmit = useCallback((e) => {
       e.preventDefault();
@@ -126,6 +158,18 @@ const MaintenanceModal = ({ isOpen, onClose, record, onSubmit }) => {
                               <Input size="sm" placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} />
                           </FormControl>
                       </Flex>
+                      <FormControl mt={2}>
+                          <FormLabel>Condition</FormLabel>
+                          <Box h="40vh">
+                              <ConditionEditor
+                                condition={condition}
+                                setCondition={setCondition}
+                                setIsValid={setConditionIsValid}
+                                initialMode="plaintext"
+                              />
+                          </Box>
+                      </FormControl>
+                      <Box borderWidth="1px" borderRadius="md" p={2} mt={2}>
                       <Flex direction="row" justify="space-between" align="center" wrap="wrap" gap="20px">
                           <FormControl flex="1">
                               <FormLabel>Start</FormLabel>
@@ -137,9 +181,9 @@ const MaintenanceModal = ({ isOpen, onClose, record, onSubmit }) => {
                                   todayButton="Today"
                                   selectsStart
                                   showTimeSelect
-                                  onChange={(date) => setStart(date)}
+                                  onChange={handleStartChange}
                                   selected={start}
-                                  maxDate={end}
+                                  // maxDate={end}
                               />
                           </FormControl>
                           <FormControl flex="1">
@@ -157,23 +201,10 @@ const MaintenanceModal = ({ isOpen, onClose, record, onSubmit }) => {
                                   minDate={start}
                               />
                           </FormControl>
-                      </Flex>
-                      <FormControl mt={2}>
-                          <FormLabel>Condition</FormLabel>
-                          <Box h="40vh">
-                              <ConditionEditor
-                                condition={condition}
-                                setCondition={setCondition}
-                                setIsValid={setConditionIsValid}
-                                initialMode="plaintext"
-                              />
-                          </Box>
-                      </FormControl>
-                      <Flex direction="row" justify="space-between" align="center" wrap="wrap" gap="20px">
                           <FormControl flex="1">
-                              <FormLabel>Frequency</FormLabel>
-                              <Select size="sm" value={frequency} onChange={(e) => setFrequency(e.target.value)}>
-                                  <option value="Once">Once</option>
+                              <FormLabel>Repeat</FormLabel>
+                              <Select size="sm" value={frequency} onChange={handleFrequencyChange}>
+                                  <option value="Once">None</option>
                                   <option value="Daily">Daily</option>
                                   <option value="Weekly">Weekly</option>
                               </Select>
@@ -181,10 +212,14 @@ const MaintenanceModal = ({ isOpen, onClose, record, onSubmit }) => {
                           {['Daily', 'Weekly'].includes(frequency) && (
                               <FormControl flex="1">
                                   <FormLabel>Duration</FormLabel>
-                                  <DurationInput size="sm" value={duration} onChange={(durationSeconds) => setDuration(durationSeconds)} />
+                                  <DurationInput size="xs" value={duration} onChange={(durationSeconds) => setDuration(durationSeconds)} />
                               </FormControl>
                           )}
                       </Flex>
+                        <Flex direction="row" justify="space-between" align="center" wrap="wrap" gap="20px">
+                        </Flex>
+                        <FrequencyDescription start={start} end={end} frequency={frequency} duration={duration} />
+                      </Box>
                       {validationHint && (
                           <Text display="block" color="red" fontSize="sm" fontStyle="italic" my={2}>
                               {validationHint}

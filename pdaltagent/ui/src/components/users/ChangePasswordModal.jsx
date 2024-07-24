@@ -26,7 +26,6 @@ const ChangePasswordModal = ({ isOpen, onClose, email }) => {
     const handleChangePassword = useCallback((e) => {
         e.preventDefault();
         const csrfToken = sessionStorage.getItem('csrfToken');
-        console.log('Changing password for user:', email);
         fetch(urlFor(`/users/${email}`), {
             method: 'PUT',
             headers: {
@@ -41,7 +40,6 @@ const ChangePasswordModal = ({ isOpen, onClose, email }) => {
         )
         .then((res) => res.json())
         .then((data) => {
-            console.log('Response:', data);
             if (data?.status === 'ok') {
                 toast({
                     title: 'Password changed',

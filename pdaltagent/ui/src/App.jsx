@@ -97,7 +97,6 @@ function App() {
 
   // get maints
   useEffect(() => {
-    console.log('useEffect', needsRefresh, isLoggedIn, dataHasChanged)
     if (!needsRefresh && !dataHasChanged) {
       return;
     }
@@ -105,7 +104,6 @@ function App() {
       setMaints([]);
       return;
     }
-    console.log('Fetching maintenance windows')
     fetch(urlFor('/maints'), {
       method: 'GET',
       headers: {
