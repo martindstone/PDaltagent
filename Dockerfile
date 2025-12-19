@@ -16,7 +16,7 @@ WORKDIR /etc/pdagentd/ssl
 RUN openssl req -x509 -newkey rsa:4096 -nodes -out cert.pem -keyout key.pem -days 3650 -subj "/C=US/ST=CA/L=San Francisco/CN=pagerduty.com"
 
 WORKDIR /tmp
-COPY dist/pdaltagent-0.5.0*.whl .
-RUN pip3 install ./pdaltagent-0.5.0*.whl --break-system-packages
+COPY dist/pdaltagent-0.6.0*.whl .
+RUN pip3 install ./pdaltagent-0.6.0*.whl --break-system-packages
 
 ENTRYPOINT /etc/run_supervisord.sh

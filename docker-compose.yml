@@ -15,7 +15,7 @@ services:
     restart: always
 
   pdagentd:
-    image: martindstone/pdaltagent:0.4-beta3
+    image: martindstone/pdaltagent:0.6.0
     container_name: pdaltagent_pdagentd
     environment:
       # Set HTTP_PROXY, HTTPS_PROXY and NO_PROXY if you are in a proxy environment
@@ -57,6 +57,17 @@ services:
       # for details and regexes):
       # - PDAGENTD_SCRUB_PII=true
 
+      # Optional: Tune worker throughput
+      # - PDAGENTD_WORKER_CONCURRENCY=4
+      # - PDAGENTD_PREFETCH_MULTIPLIER=4
+      # - PDAGENTD_MAX_TASKS_PER_CHILD=1000
+
+      # Optional: Enable SNMP trap ingestion (listens on UDP/9162 by default)
+      # - PDAGENTD_SNMP_ENABLED=true
+      # - PDAGENTD_SNMP_ROUTING_KEY=<YOUR_ROUTING_KEY>
+      # - PDAGENTD_SNMP_COMMUNITY=public
+      # - PDAGENTD_SNMP_PORT=9162
+
       # Set PDSEND_EVENTS_BASE_URL to a URL where the pd-send command should send event payloads:
       - PDSEND_EVENTS_BASE_URL=https://localhost:8443
 
@@ -78,6 +89,8 @@ services:
       - '8443:8443'
       # admin
       - '8444:8444'
+      # SNMP traps (UDP)
+      - '9162:9162/udp'
       # supervisor
       - '9001:9001'
     depends_on:

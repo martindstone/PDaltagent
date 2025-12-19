@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "PDaltagent"
-version = "0.5.0"
+version = "0.6.0"
 description = ""
 authors = ["Martin Stone <martin@pagerduty.com>"]
 exclude = ["pdaltagent/ui"]
@@ -21,6 +21,7 @@ flask-security-too = "~5.4"
 bcrypt = "~4.0.1"
 bleach = "~6.1"
 setuptools = "^70.0.0"
+pysnmp-lextudio = "~5.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7"
@@ -30,6 +31,7 @@ pdagentd = 'pdaltagent.tasks:consume'
 pdpollerd = 'pdaltagent.tasks:poll'
 pd-send = 'pdaltagent.pdsend:main'
 pdaltagentui = 'pdaltagent.api.api:app'
+pdagent-snmp = 'pdaltagent.snmp:main'
 
 [build-system]
 requires = ["poetry>=1.1.14"]
