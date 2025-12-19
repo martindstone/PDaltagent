@@ -37,8 +37,8 @@ Okay, here's how you can get started:
 * When you run PDaltagent using the Docker Compose in this repo, you will get four running containers:
     * `pdaltagent_pdagentd` is the container that is running the queue consumers and the HTTPS listener. It also has [PagerDuty CLI](https://github.com/martindstone/pagerduty-cli) installed for your convenience.
     * `pdaltagent_rabbitmq` is the container that is running the RabbitMQ backend for Celery. You can access the Rabbit management interface at `http://your_pdaltagent_host:15672`. See or change the username and password in docker-compose.yml.
-    * `pdaltagent_mongo` is the container running MongoDB. PDaltagent uses Mongo to hold recently seen log entries when polling for webhooks, but you can also use it in your plugins.
-    * `pdaltagent_mongo-express` is the container runing [Mongo-Express](https://github.com/mongo-express/mongo-express), which is a simple web UI for managing data stored in Mongo. See docker-compose.yml for the port, username and password. You can remove this container if you don't want to use Mongo-Express.
+* `pdaltagent_mongo` is the container running MongoDB. PDaltagent uses Mongo to hold recently seen log entries when polling for webhooks, but you can also use it in your plugins.
+* `pdaltagent_mongo-express` is the container runing [Mongo-Express](https://github.com/mongo-express/mongo-express), which is a simple web UI for managing data stored in Mongo. See docker-compose.yml for the port, username and password. You can remove this container if you don't want to use Mongo-Express.
 
 * Docker Compose will also create a directory called `pdaltagent_pdagentd` in the current directory when you run it. This directory has the following subdirectories:
     * `plugins` is where you put plugins that you write. There are a couple of example plugins added to this directory when it is first created. You can read these to find out how to write plugins, or just ignore them; they are disabled by default.
@@ -48,6 +48,43 @@ Okay, here's how you can get started:
 * pdagentd will listen for events on port 8080 for cleartext HTTP and on port 8443 for HTTPS. You can change this by changing the mapped ports in the pdagentd section of docker-compose.yml
 * By default, the pdagentd listener uses a self-signed cert and key for HTTPS. This can cause warnings and failures on some clients, unless you tell them to skip certificate verification. If you cant to use your own cert and key, see the example in docker-compose.yml to create a bindmoint for `/etc/pdagentd/ssl/cert.pem` and `/etc/pdagentd/ssl/key.pem`.
 * If you want to change the services that are run in the container, see the example in docker-compose.yml to create a bindmount for `/etc/supervisord.conf`.
+
+### SNMP trap ingestion
+
+PDaltagent now ships with an optional SNMP trap listener that can turn traps into PagerDuty events. To enable it:
+
+1. Install with the SNMP extra (`pip install pdaltagent[snmp]`) or use the Docker image that already bundles the dependency.
+2. Set the environment variables:
+   * `PDAGENTD_SNMP_ENABLED=true`
+   * `PDAGENTD_SNMP_ROUTING_KEY=<your routing key>`
+   * `PDAGENTD_SNMP_COMMUNITY` (defaults to `public`)
+   * `PDAGENTD_SNMP_PORT` (defaults to `9162`)
+   * `PDAGENTD_SNMP_SEVERITY` (defaults to `error`)
+3. Allow UDP traffic to port `9162` (or your chosen port).
+
+Traps are converted to v2 events with a summary such as `SNMP trap <oid> from <source>` and the full bindings available in `custom_details`.
+
+### Kubernetes quick start
+
+Example manifests are provided under `k8s/`:
+
+```bash
+kubectl apply -f k8s/deployment.yaml
+kubectl apply -f k8s/service.yaml
+```
+
+The deployment exposes HTTP/HTTPS listeners and the optional SNMP trap port (UDP/9162). Override `CELERY_BROKER_URL`, `PDAGENTD_SNMP_*`, and worker tuning variables (`PDAGENTD_WORKER_CONCURRENCY`, `PDAGENTD_PREFETCH_MULTIPLIER`) with environment variables or a ConfigMap/Secret to match your environment. Scale replicas horizontally and point them at a shared RabbitMQ and MongoDB for throughput.
+
+### Scaling and tuning
+
+Celery worker behavior can now be tuned via environment:
+
+* `PDAGENTD_WORKER_CONCURRENCY` — cap worker processes/threads (defaults to Celery auto-detect).
+* `PDAGENTD_PREFETCH_MULTIPLIER` — number of tasks each worker prefetches (defaults to 1).
+* `PDAGENTD_MAX_TASKS_PER_CHILD` — recycle workers after N tasks to control memory.
+* `PDAGENTD_WORKER_SEND_EVENTS` — emit worker events for monitoring.
+
+Adjust these alongside your broker backend (e.g., RabbitMQ) to run under heavier load.
 
 ## How to send events to PagerDuty through PDaltagent
 

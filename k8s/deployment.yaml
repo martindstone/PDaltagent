@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pdaltagent
+  labels:
+    app: pdaltagent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pdaltagent
+  template:
+    metadata:
+      labels:
+        app: pdaltagent
+    spec:
+      containers:
+        - name: pdaltagent
+          image: martindstone/pdaltagent:0.6.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+            - containerPort: 8443
+              name: https
+              protocol: TCP
+            - containerPort: 9162
+              name: snmp-trap
+              protocol: UDP
+          env:
+            - name: CELERY_BROKER_URL
+              value: amqp://pdaltagent:pdaltagent@rabbitmq:5672//
+            - name: PDAGENTD_ADMIN_USER
+              valueFrom:
+                secretKeyRef:
+                  name: pdaltagent-admin
+                  key: user
+            - name: PDAGENTD_ADMIN_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: pdaltagent-admin
+                  key: password
+            - name: PDAGENTD_SNMP_ENABLED
+              value: "false"
+            - name: PDAGENTD_SNMP_PORT
+              value: "9162"
+            - name: PDAGENTD_WORKER_CONCURRENCY
+              value: "4"
+            - name: PDAGENTD_PREFETCH_MULTIPLIER
+              value: "4"
+          volumeMounts:
+            - name: plugins
+              mountPath: /usr/lib/python3.12/site-packages/pdaltagent/plugins
+            - name: plugin-lib
+              mountPath: /usr/lib/python3.12/site-packages/pdaltagent/plugin-lib
+      volumes:
+        - name: plugins
+          emptyDir: {}
+        - name: plugin-lib
+          emptyDir: {}

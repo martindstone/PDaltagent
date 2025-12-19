@@ -6,9 +6,10 @@ import pdaltagent.pd as pd
 import os
 
 from flask import Flask, request
+from pdaltagent.config import env_flag
 app = Flask(__name__)
 
-SCRUB = True if os.environ.get("PDAGENTD_SCRUB_PII") and os.environ.get("PDAGENTD_SCRUB_PII").lower != 'false' else False
+SCRUB = env_flag("PDAGENTD_SCRUB_PII")
 
 @app.route('/integration/<routing_key>/enqueue', methods=['POST'])
 def enqueue_integration(routing_key):
