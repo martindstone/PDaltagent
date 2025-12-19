@@ -73,7 +73,19 @@ kubectl apply -f k8s/deployment.yaml
 kubectl apply -f k8s/service.yaml
 ```
 
-The deployment exposes HTTP/HTTPS listeners and the optional SNMP trap port (UDP/9162). Override `CELERY_BROKER_URL`, `PDAGENTD_SNMP_*`, and worker tuning variables (`PDAGENTD_WORKER_CONCURRENCY`, `PDAGENTD_PREFETCH_MULTIPLIER`) with environment variables or a ConfigMap/Secret to match your environment. Scale replicas horizontally and point them at a shared RabbitMQ and MongoDB for throughput.
+The deployment exposes HTTP/HTTPS listeners and the optional SNMP trap port (UDP/9162). Override `CELERY_BROKER_URL`, `MONGODB_URL`, `PDAGENTD_SNMP_*`, and worker tuning variables (`PDAGENTD_WORKER_CONCURRENCY`, `PDAGENTD_PREFETCH_MULTIPLIER`) with environment variables or a ConfigMap/Secret to match your environment. Scale replicas horizontally and point them at a shared RabbitMQ and MongoDB for throughput.
+
+To persist or share plugins across replicas, swap the `emptyDir` volume examples in `k8s/deployment.yaml` for real mounts, e.g.:
+
+```yaml
+volumes:
+  - name: plugins
+    persistentVolumeClaim:
+      claimName: pdaltagent-plugins-pvc
+  - name: plugin-lib
+    hostPath:
+      path: /srv/pdaltagent/plugin-lib
+```
 
 ### Scaling and tuning
 
